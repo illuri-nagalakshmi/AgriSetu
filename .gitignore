@@ -1,5 +1,7 @@
+
 # Compiled class files & build directories
 target/
+backend/target/
 *.class
 
 # Log files
@@ -21,6 +23,8 @@ desktop.ini
 
 # Local environment and secrets
 .env
+.env.*
+!.env.example
 *.local
 
 # Package locks and temporary files
