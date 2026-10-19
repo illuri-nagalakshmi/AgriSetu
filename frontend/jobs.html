@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agricultural Jobs Marketplace — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="container" style="padding-top: 36px; padding-bottom: 60px;">
+    
+    <!-- Title & Header -->
+    <div style="margin-bottom: 28px;">
+      <h1 style="font-size: 2.2rem; color: var(--color-forest);" data-i18n="nav_find_work">Find Agricultural Work</h1>
+      <p style="color: var(--color-text-secondary);">Browse live agricultural vacancies posted directly by verified farmers.</p>
+    </div>
+
+    <!-- Filter Bar Card -->
+    <div class="card" style="margin-bottom: 32px; background: #FFFFFF; border-left: 4px solid var(--color-primary);">
+      <form id="filter-form" onsubmit="applyFilters(event)">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Category</label>
+            <select id="filter-category" class="form-control">
+              <option value="">All Categories</option>
+              <option value="Harvesting">Harvesting</option>
+              <option value="Sowing">Sowing</option>
+              <option value="Ploughing">Ploughing</option>
+              <option value="Weeding">Weeding</option>
+              <option value="Irrigation">Irrigation</option>
+              <option value="Planting">Planting</option>
+              <option value="Fertilizer Application">Fertilizer Application</option>
+              <option value="Fruit Picking">Fruit Picking</option>
+              <option value="General Agricultural Labour">General Agricultural Labour</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">District / Location</label>
+            <input type="text" id="filter-district" class="form-control" placeholder="e.g. Guntur">
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Min Daily Wage (₹)</label>
+            <input type="number" id="filter-min-wage" class="form-control" placeholder="Min ₹">
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Sort By</label>
+            <select id="filter-sort" class="form-control">
+              <option value="newest">Newest First</option>
+              <option value="wage_desc">Wage: High to Low</option>
+              <option value="wage_asc">Wage: Low to High</option>
+              <option value="date">Earliest Start Date</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 18px; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; gap:16px;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.9rem; cursor:pointer;">
+              <input type="checkbox" id="filter-meals"> Meals Provided
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.9rem; cursor:pointer;">
+              <input type="checkbox" id="filter-accommodation"> Accommodation
+            </label>
+          </div>
+
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="resetFilters()">Reset</button>
+            <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Jobs Grid -->
+    <div id="jobs-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--color-text-secondary);">
+        Loading agricultural jobs...
+      </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div id="pagination-controls" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 40px;"></div>
+
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/jobs.js"></script>
+
+  <script>
+    let currentPage = 0;
+    const pageSize = 12;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Parse URL query parameters if coming from hero search
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('category')) document.getElementById('filter-category').value = params.get('category');
+      if (params.get('district')) document.getElementById('filter-district').value = params.get('district');
+      if (params.get('minWage')) document.getElementById('filter-min-wage').value = params.get('minWage');
+      if (params.get('mealsProvided') === 'true') document.getElementById('filter-meals').checked = true;
+
+      loadJobs(0);
+    });
+
+    async function loadJobs(page = 0) {
+      currentPage = page;
+      const container = document.getElementById('jobs-container');
+      container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">Loading matching jobs...</div>';
+
+      const cat = document.getElementById('filter-category').value;
+      const district = document.getElementById('filter-district').value.trim();
+      const minWage = document.getElementById('filter-min-wage').value;
+      const sortBy = document.getElementById('filter-sort').value;
+      const meals = document.getElementById('filter-meals').checked ? true : null;
+      const accomm = document.getElementById('filter-accommodation').checked ? true : null;
+
+      const params = new URLSearchParams({
+        page: currentPage,
+        size: pageSize,
+        sortBy: sortBy
+      });
+      if (cat) params.append('category', cat);
+      if (district) params.append('district', district);
+      if (minWage) params.append('minWage', minWage);
+      if (meals !== null) params.append('mealsProvided', meals);
+      if (accomm !== null) params.append('accommodationProvided', accomm);
+
+      try {
+        const res = await window.api.get(`/api/jobs?${params.toString()}`);
+        if (res.success && res.data && res.data.content && res.data.content.length > 0) {
+          container.innerHTML = res.data.content.map(renderJobCard).join('');
+          renderPagination(res.data.totalPages, res.data.number);
+        } else {
+          container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: white; border-radius: var(--radius-md); border: 1px dashed var(--color-border);">
+              <h3 style="color: var(--color-forest); margin-bottom: 8px;">No matching agricultural jobs found</h3>
+              <p style="color: var(--color-text-secondary); margin-bottom: 16px;">Try adjusting your location, wage filter, or category.</p>
+              <button onclick="resetFilters()" class="btn btn-secondary btn-sm">Clear All Filters</button>
+            </div>
+          `;
+          document.getElementById('pagination-controls').innerHTML = '';
+        }
+      } catch (err) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 30px; background: #FEE2E2; border-radius: var(--radius-md); color: #991B1B;">
+            Failed to load jobs. Error: ${escapeHtml(err.message)}
+          </div>
+        `;
+      }
+    }
+
+    function applyFilters(e) {
+      e.preventDefault();
+      loadJobs(0);
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-category').value = '';
+      document.getElementById('filter-district').value = '';
+      document.getElementById('filter-min-wage').value = '';
+      document.getElementById('filter-meals').checked = false;
+      document.getElementById('filter-accommodation').checked = false;
+      document.getElementById('filter-sort').value = 'newest';
+      loadJobs(0);
+    }
+
+    function renderPagination(totalPages, activePage) {
+      const container = document.getElementById('pagination-controls');
+      if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      if (activePage > 0) {
+        html += `<button class="btn btn-secondary btn-sm" onclick="loadJobs(${activePage - 1})">← Previous</button>`;
+      }
+
+      html += `<span style="font-weight:600; color:var(--color-text-secondary); font-size:0.9rem;">Page ${activePage + 1} of ${totalPages}</span>`;
+
+      if (activePage < totalPages - 1) {
+        html += `<button class="btn btn-secondary btn-sm" onclick="loadJobs(${activePage + 1})">Next →</button>`;
+      }
+
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

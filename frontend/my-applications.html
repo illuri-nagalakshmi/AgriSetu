@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Applications — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="dashboard-wrapper">
+    <aside class="dashboard-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="labourer-dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="jobs.html" class="sidebar-link">🔍 Find Jobs</a></li>
+        <li><a href="my-applications.html" class="sidebar-link active">📄 My Applications</a></li>
+        <li><a href="assignments.html" class="sidebar-link">🌾 Work Assignments</a></li>
+        <li><a href="saved-jobs.html" class="sidebar-link">⭐ Saved Jobs</a></li>
+        <li><a href="notifications.html" class="sidebar-link">🔔 Notifications</a></li>
+        <li><a href="profile.html" class="sidebar-link">👤 My Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title">My Agricultural Job Applications</h1>
+          <p class="dashboard-subtitle">Track the status of all your submitted job applications</p>
+        </div>
+        <div>
+          <a href="jobs.html" class="btn btn-primary">Find More Work</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Job Title & Crop</th>
+                <th>Applied Date</th>
+                <th>Cover Note</th>
+                <th>Status</th>
+                <th>Farmer's Decision Note</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="my-apps-tbody">
+              <tr>
+                <td colspan="6" style="text-align:center; padding:32px;">Loading your applications...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['LABOURER', 'ADMIN'])) return;
+      loadMyApplications();
+    });
+
+    async function loadMyApplications() {
+      const tbody = document.getElementById('my-apps-tbody');
+      try {
+        const res = await window.api.get('/api/applications/my');
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.map(app => {
+            let badgeClass = 'badge-warning';
+            if (app.status === 'ACCEPTED') badgeClass = 'badge-success';
+            else if (app.status === 'REJECTED') badgeClass = 'badge-danger';
+            else if (app.status === 'WITHDRAWN') badgeClass = 'badge-neutral';
+
+            return `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(app.jobTitle)}</strong><br>
+                  <small style="color:var(--color-text-secondary);">${escapeHtml(app.jobCategory)}</small>
+                </td>
+                <td><small>${app.appliedAt ? app.appliedAt.replace('T', ' ').substring(0, 16) : '-'}</small></td>
+                <td><small style="font-style:italic;">"${escapeHtml(app.coverNote || 'None')}"</small></td>
+                <td><span class="badge ${badgeClass}">${app.status}</span></td>
+                <td>${escapeHtml(app.decisionReason || '-')}</td>
+                <td>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <a href="job-details.html?id=${app.jobId}" class="btn btn-outline btn-sm">View Job</a>
+                    ${app.status === 'ACCEPTED' ? `
+                      <a href="assignments.html" class="btn btn-primary btn-sm">View Assignment</a>
+                    ` : ''}
+                    ${app.status === 'PENDING' ? `
+                      <button onclick="withdrawApp(${app.id})" class="btn btn-secondary btn-sm" style="color:var(--color-danger);">
+                        Withdraw
+                      </button>
+                    ` : ''}
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align:center; padding:36px;">
+                <p style="color:var(--color-text-secondary); margin-bottom:12px;">You have not applied for any jobs yet.</p>
+                <a href="jobs.html" class="btn btn-primary btn-sm">Browse Jobs</a>
+              </td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Failed to load applications: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    async function withdrawApp(appId) {
+      if (!confirm('Are you sure you want to withdraw this application?')) return;
+      try {
+        await window.api.post(`/api/applications/${appId}/withdraw`, {});
+        window.toast.info('Application withdrawn successfully');
+        loadMyApplications();
+      } catch (err) {
+        window.toast.error(err.message || 'Failed to withdraw application');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

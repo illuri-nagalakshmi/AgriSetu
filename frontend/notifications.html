@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="container" style="padding-top: 36px; padding-bottom: 60px; max-width: 800px;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 class="dashboard-title">Notifications</h1>
+        <p class="dashboard-subtitle">Updates on your applications, assignments, and farm postings</p>
+      </div>
+      <button onclick="markAllRead()" class="btn btn-outline btn-sm">Mark All as Read</button>
+    </div>
+
+    <div id="notifications-list" style="display:flex; flex-direction:column; gap:12px;">
+      <div style="text-align:center; padding:40px; color:var(--color-text-secondary);">
+        Loading notifications...
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth()) return;
+      loadNotifications();
+    });
+
+    async function loadNotifications() {
+      const container = document.getElementById('notifications-list');
+      try {
+        const res = await window.api.get('/api/notifications/my');
+        if (res.success && res.data && res.data.length > 0) {
+          container.innerHTML = res.data.map(n => {
+            return `
+              <div class="card" style="padding:16px 20px; border-left: 4px solid ${n.read ? 'var(--color-border)' : 'var(--color-primary)'}; background: ${n.read ? '#FFFFFF' : '#F0FDF4'};">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                  <div>
+                    <h4 style="color:var(--color-forest); font-size:1.05rem; margin-bottom:4px;">
+                      ${!n.read ? '<span style="color:var(--color-primary); font-size:1.2rem;">• </span>' : ''}
+                      ${escapeHtml(n.title)}
+                    </h4>
+                    <p style="color:var(--color-text-main); font-size:0.92rem; line-height:1.5;">${escapeHtml(n.message)}</p>
+                    <small style="color:var(--color-text-secondary); margin-top:6px; display:inline-block;">
+                      ${n.createdAt ? n.createdAt.replace('T', ' ').substring(0, 16) : ''}
+                    </small>
+                  </div>
+                  ${!n.read ? `
+                    <button onclick="markAsRead(${n.id})" class="btn btn-secondary btn-sm" title="Mark as read">
+                      ✓ Mark Read
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = `
+            <div class="card" style="text-align:center; padding:40px;">
+              <p style="color:var(--color-text-secondary);">You have no notifications at this time.</p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">Failed to load notifications: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    async function markAsRead(id) {
+      try {
+        await window.api.put(`/api/notifications/${id}/read`, {});
+        loadNotifications();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function markAllRead() {
+      try {
+        await window.api.put('/api/notifications/read-all', {});
+        window.toast.success('All notifications marked as read');
+        loadNotifications();
+      } catch (err) {
+        window.toast.error(err.message || 'Failed to mark all as read');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 70" width="320" height="70">
+  <defs>
+    <linearGradient id="agriGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15803D" />
+      <stop offset="100%" stop-color="#22C55E" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EAB308" />
+      <stop offset="100%" stop-color="#CA8A04" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Icon: Sprout + Bridge arch (Setu) -->
+  <g transform="translate(10, 8)">
+    <!-- Bridge Arch -->
+    <path d="M 5 45 Q 25 10 45 45" fill="none" stroke="url(#agriGrad)" stroke-width="4.5" stroke-linecap="round" />
+    <!-- Sprout Leaves -->
+    <path d="M 25 28 C 22 18, 12 16, 12 24 C 12 32, 22 34, 25 38" fill="url(#agriGrad)" />
+    <path d="M 25 28 C 28 18, 38 16, 38 24 C 38 32, 28 34, 25 38" fill="#14532D" />
+    <!-- Harvest Wheat Grain accent -->
+    <circle cx="25" cy="14" r="3.5" fill="url(#goldGrad)" />
+  </g>
+
+  <!-- Typography -->
+  <text x="68" y="38" font-family="'Segoe UI', Roboto, Helvetica, sans-serif" font-size="28" font-weight="800" fill="#14532D" letter-spacing="-0.5">
+    Agri<tspan fill="#15803D">Setu</tspan>
+  </text>
+  <text x="70" y="52" font-family="'Segoe UI', Roboto, Helvetica, sans-serif" font-size="10.5" font-weight="600" fill="#64748B" letter-spacing="1.2">
+    CONNECTING FARMERS • EMPOWERING LABOURERS
+  </text>
+</svg>

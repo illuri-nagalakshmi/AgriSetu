@@ -1,0 +1,28 @@
+# Compiled class files & build directories
+target/
+*.class
+
+# Log files
+*.log
+logs/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Local environment and secrets
+.env
+*.local
+
+# Package locks and temporary files
+*.tmp
+*.bak

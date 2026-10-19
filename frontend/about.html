@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Project — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="container" style="max-width: 860px; padding-top: 48px; padding-bottom: 72px;">
+    
+    <div style="text-align: center; margin-bottom: 36px;">
+      <span class="badge badge-success" style="margin-bottom: 8px;">Community Service Project (CSP)</span>
+      <h1 style="color: var(--color-forest); font-size: 2.4rem;">About AgriSetu</h1>
+      <p style="color: var(--color-text-secondary); font-size: 1.1rem; margin-top: 8px;">
+        Connecting Farmers. Empowering Labourers.
+      </p>
+    </div>
+
+    <div class="card" style="box-shadow: var(--shadow-sm); margin-bottom: 28px; line-height: 1.8;">
+      <h2 style="color: var(--color-forest); margin-bottom: 14px;">1. Project Background & Social Problem</h2>
+      <p style="margin-bottom: 14px;">
+        Agriculture is the lifeblood of rural India, yet smallholder farmers frequently suffer critical crop losses during harvest and sowing seasons due to acute labour shortages. Simultaneously, agricultural workers and daily-wage labourers face severe underemployment and loss of income because they lack direct visibility into which nearby farms require assistance.
+      </p>
+      <p style="margin-bottom: 14px;">
+        Traditionally, this information gap has been filled by unregulated middlemen and labour contractors who extract 15% to 30% of the worker's hard-earned daily wages while providing zero transparency or safety guarantees.
+      </p>
+      <p>
+        <strong>AgriSetu (The Agricultural Bridge)</strong> was built as a Community Service Project (CSP) to dismantle these barriers by providing a direct, transparent, and mobile-accessible digital link between farmers and workers.
+      </p>
+    </div>
+
+    <div class="card" style="box-shadow: var(--shadow-sm); margin-bottom: 28px; line-height: 1.8;">
+      <h2 style="color: var(--color-forest); margin-bottom: 14px;">2. Core Engineering Principles</h2>
+      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 12px;">
+        <li>
+          <strong>Concurrency-Safe Worker Allocation:</strong> Mathematical guarantee (<code>Remaining Vacancies = Required Workers - Confirmed Workers</code>) enforced with database row-level locking to eliminate overbooking and ghost assignments.
+        </li>
+        <li>
+          <strong>Contact Privacy by Default:</strong> Labourers' and farmers' mobile numbers are protected against spam and unsolicited scraping; mutual contact details are only revealed when a formal work assignment is confirmed.
+        </li>
+        <li>
+          <strong>Inclusive Multilingual Access:</strong> Complete support for Telugu, Hindi, and English so that local rural workers can navigate the platform in their native language.
+        </li>
+        <li>
+          <strong>Zero Exploitation:</strong> Transparent daily wages, meal arrangements, transport options, and work hours disclosed upfront before anyone applies.
+        </li>
+      </ul>
+    </div>
+
+    <div class="card" id="safety" style="box-shadow: var(--shadow-sm); line-height: 1.8; border-left: 4px solid var(--color-harvest-gold);">
+      <h2 style="color: var(--color-forest); margin-bottom: 14px;">3. Safety and Community Standards</h2>
+      <p style="margin-bottom: 12px;">
+        Farmers posting on AgriSetu must provide clean drinking water, emergency first aid kits, and accurate working hour expectations. Mutual post-work reviews establish trust, while administrative dispute moderation ensures immediate resolution of any grievances.
+      </p>
+      <div style="margin-top: 18px;">
+        <a href="jobs.html" class="btn btn-primary btn-sm">Explore Open Jobs</a>
+        <a href="privacy.html" class="btn btn-secondary btn-sm" style="margin-left: 8px;">View Privacy Guidelines</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+</body>
+</html>

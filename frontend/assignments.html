@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Assignments — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="container" style="padding-top: 36px; padding-bottom: 60px; max-width: 1050px;">
+    
+    <div class="dashboard-header">
+      <div>
+        <h1 class="dashboard-title">Agricultural Work Assignments</h1>
+        <p class="dashboard-subtitle">Active and completed farm work with authorized contact details and completion confirmation</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--color-primary);">
+      <p style="font-size:0.92rem; color:var(--color-text-main);">
+        🔒 <strong>Authorized Work Relationship:</strong> For confirmed assignments, direct mobile numbers are revealed below so farmers and labourers can coordinate arrival times, tools, and farm directions.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Job Title</th>
+              <th>Other Party</th>
+              <th>Direct Phone</th>
+              <th>Schedule & Location</th>
+              <th>Agreed Wage</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="assignments-tbody">
+            <tr>
+              <td colspan="7" style="text-align:center; padding:32px;">Loading assignments...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Review Submission Modal -->
+  <div id="review-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 style="color:var(--color-forest);">Submit Rating & Feedback</h3>
+        <button class="modal-close" onclick="closeReviewModal()">&times;</button>
+      </div>
+      <form id="review-form" onsubmit="handleReviewSubmit(event)">
+        <input type="hidden" id="review-assignment-id">
+
+        <div class="form-group">
+          <label class="form-label">Rating (1 to 5 Stars) *</label>
+          <select id="review-rating" class="form-control" required style="font-size:1.1rem; font-weight:700;">
+            <option value="5">⭐⭐⭐⭐⭐ 5 Stars — Excellent work & prompt payment</option>
+            <option value="4">⭐⭐⭐⭐ 4 Stars — Very Good</option>
+            <option value="3">⭐⭐⭐ 3 Stars — Satisfactory</option>
+            <option value="2">⭐⭐ 2 Stars — Needs Improvement</option>
+            <option value="1">⭐ 1 Star — Poor Experience</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Feedback / Comments (Optional)</label>
+          <textarea id="review-comment" class="form-control" rows="3" placeholder="Share your experience regarding punctuality, agricultural skills, tool care, or work environment..."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeReviewModal()">Cancel</button>
+          <button type="submit" id="btn-submit-review" class="btn btn-primary">Submit Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth()) return;
+      loadAssignments();
+    });
+
+    async function loadAssignments() {
+      const tbody = document.getElementById('assignments-tbody');
+      const user = window.auth.getUser();
+
+      try {
+        const res = await window.api.get('/api/assignments/my');
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.map(a => {
+            const isFarmer = user.role === 'FARMER' || a.farmerId === user.id;
+            const otherPartyName = isFarmer ? a.labourerName : a.farmerName;
+            const otherPartyPhone = isFarmer ? a.labourerPhone : a.farmerPhone;
+            const otherRoleLabel = isFarmer ? 'Worker' : 'Farmer';
+
+            let badgeClass = 'badge-success';
+            if (a.status === 'COMPLETED') badgeClass = 'badge-info';
+            else if (a.status === 'CANCELLED') badgeClass = 'badge-danger';
+            else if (a.status === 'IN_PROGRESS') badgeClass = 'badge-warning';
+
+            return `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(a.jobTitle)}</strong>
+                </td>
+                <td>
+                  <strong>${escapeHtml(otherPartyName)}</strong><br>
+                  <small style="color:var(--color-text-secondary);">${otherRoleLabel}</small>
+                </td>
+                <td>
+                  <a href="tel:${otherPartyPhone}" class="btn-contact">
+                    📞 ${otherPartyPhone}
+                  </a>
+                </td>
+                <td>
+                  <small>📍 ${escapeHtml(a.farmLocation)}</small><br>
+                  <small>📅 ${a.startDate} to ${a.endDate}</small>
+                </td>
+                <td><strong>₹${a.agreedWage}</strong> <small>/ ${a.wageBasis.toLowerCase()}</small></td>
+                <td>
+                  <span class="badge ${badgeClass}">${a.status}</span>
+                </td>
+                <td>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    ${a.status !== 'COMPLETED' && a.status !== 'CANCELLED' ? `
+                      <button onclick="confirmCompletion(${a.id})" class="btn btn-primary btn-sm" title="Mark work completed">
+                        ✓ Confirm Complete
+                      </button>
+                    ` : ''}
+
+                    ${a.status === 'COMPLETED' ? `
+                      ${!a.reviewedByMe ? `
+                        <button onclick="openReviewModal(${a.id})" class="btn btn-harvest btn-sm">
+                          ⭐ Rate & Review
+                        </button>
+                      ` : `
+                        <span class="badge badge-neutral" style="font-size:0.75rem;">✓ Reviewed</span>
+                      `}
+                    ` : ''}
+
+                    ${a.status === 'CONFIRMED' ? `
+                      <button onclick="cancelAssignment(${a.id})" class="btn btn-secondary btn-sm" style="color:var(--color-danger);" title="Cancel and release vacancy">
+                        Cancel
+                      </button>
+                    ` : ''}
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align:center; padding:36px;">
+                <p style="color:var(--color-text-secondary); margin-bottom:12px;">No active work assignments found.</p>
+                <a href="${user.role === 'FARMER' ? 'manage-jobs.html' : 'jobs.html'}" class="btn btn-primary btn-sm">
+                  ${user.role === 'FARMER' ? 'View Posted Jobs' : 'Search Agricultural Jobs'}
+                </a>
+              </td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Failed to load assignments: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    async function confirmCompletion(assignmentId) {
+      if (!confirm('Are you sure you want to confirm that this agricultural work has been completed?')) return;
+      try {
+        await window.api.post(`/api/assignments/${assignmentId}/confirm-completion`, {});
+        window.toast.success('Completion confirmed! Both parties can now submit mutual reviews.');
+        loadAssignments();
+      } catch (err) {
+        window.toast.error(err.message || 'Failed to confirm completion');
+      }
+    }
+
+    async function cancelAssignment(assignmentId) {
+      const reason = prompt('Please enter the reason for cancellation (this will release the vacancy back to the job):');
+      if (reason === null) return;
+      try {
+        await window.api.put(`/api/assignments/${assignmentId}/status`, {
+          status: 'CANCELLED',
+          cancellationReason: reason.trim() || 'Cancelled by participant'
+        });
+        window.toast.info('Assignment cancelled. Vacancy released successfully.');
+        loadAssignments();
+      } catch (err) {
+        window.toast.error(err.message || 'Failed to cancel assignment');
+      }
+    }
+
+    function openReviewModal(assignmentId) {
+      document.getElementById('review-assignment-id').value = assignmentId;
+      document.getElementById('review-comment').value = '';
+      document.getElementById('review-rating').value = '5';
+      document.getElementById('review-modal').style.display = 'flex';
+    }
+
+    function closeReviewModal() {
+      document.getElementById('review-modal').style.display = 'none';
+    }
+
+    async function handleReviewSubmit(e) {
+      e.preventDefault();
+      const assignmentId = document.getElementById('review-assignment-id').value;
+      const rating = parseInt(document.getElementById('review-rating').value);
+      const comment = document.getElementById('review-comment').value.trim();
+
+      const btn = document.getElementById('btn-submit-review');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        await window.api.post('/api/reviews', {
+          assignmentId: parseInt(assignmentId),
+          rating: rating,
+          comment: comment || null
+        });
+        closeReviewModal();
+        window.toast.success('Thank you! Your rating and feedback have been recorded.');
+        loadAssignments();
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Submit Review';
+        window.toast.error(err.message || 'Failed to submit review');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

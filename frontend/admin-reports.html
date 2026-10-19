@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports & Disputes — AgriSetu Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="dashboard-wrapper">
+    <aside class="dashboard-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="admin-dashboard.html" class="sidebar-link">📊 System Metrics</a></li>
+        <li><a href="admin-users.html" class="sidebar-link">👥 User Management</a></li>
+        <li><a href="admin-jobs.html" class="sidebar-link">📋 Job Moderation</a></li>
+        <li><a href="admin-reports.html" class="sidebar-link active">⚠️ Reports & Disputes</a></li>
+        <li><a href="farmer-dashboard.html" class="sidebar-link">🚜 Farmer View</a></li>
+        <li><a href="labourer-dashboard.html" class="sidebar-link">🌾 Labourer View</a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title">Community Reports & Safety Disputes</h1>
+          <p class="dashboard-subtitle">Investigate user complaints regarding safety, inaccurate wages, or misconduct</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Reported By</th>
+                <th>Subject / Job</th>
+                <th>Reason</th>
+                <th>Details</th>
+                <th>Status</th>
+                <th>Admin Notes</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-reports-tbody">
+              <tr>
+                <td colspan="8" style="text-align:center; padding:32px;">Loading reports...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['ADMIN'])) return;
+      loadReports();
+    });
+
+    async function loadReports() {
+      const tbody = document.getElementById('admin-reports-tbody');
+      try {
+        const res = await window.api.get('/api/reports');
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.map(r => {
+            const badgeClass = r.status === 'RESOLVED' ? 'badge-success' : r.status === 'DISMISSED' ? 'badge-neutral' : 'badge-danger';
+            return `
+              <tr>
+                <td>#${r.id}</td>
+                <td><strong>${escapeHtml(r.reporterName)}</strong></td>
+                <td>
+                  ${r.jobTitle ? `<small>Job: ${escapeHtml(r.jobTitle)}</small>` : ''}
+                  ${r.reportedUserName ? `<small>User: ${escapeHtml(r.reportedUserName)}</small>` : ''}
+                </td>
+                <td><strong>${escapeHtml(r.reason)}</strong></td>
+                <td><small style="max-width:240px; display:inline-block; line-height:1.4;">${escapeHtml(r.details)}</small></td>
+                <td><span class="badge ${badgeClass}">${r.status}</span></td>
+                <td><small style="color:var(--color-text-secondary);">${escapeHtml(r.adminNotes || '-')}</small></td>
+                <td>
+                  ${r.status === 'PENDING' ? `
+                    <div style="display:flex; gap:6px;">
+                      <button onclick="resolveReport(${r.id}, 'RESOLVED')" class="btn btn-primary btn-sm">Resolve</button>
+                      <button onclick="resolveReport(${r.id}, 'DISMISSED')" class="btn btn-secondary btn-sm">Dismiss</button>
+                    </div>
+                  ` : `
+                    <small style="color:var(--color-text-secondary); font-weight:600;">Processed</small>
+                  `}
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:32px;">No complaints or reports recorded.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">Failed to load reports: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    async function resolveReport(reportId, newStatus) {
+      const notes = prompt(`Enter resolution notes for report #${reportId}:`, 'Investigated and verified');
+      if (notes === null) return;
+
+      try {
+        await window.api.put(`/api/reports/${reportId}/resolve?status=${newStatus}&adminNotes=${encodeURIComponent(notes.trim())}`, {});
+        window.toast.success(`Report marked as ${newStatus}`);
+        loadReports();
+      } catch (err) {
+        window.toast.error(err.message || 'Failed to resolve report');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

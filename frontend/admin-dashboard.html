@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Console — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- Admin Sidebar -->
+    <aside class="dashboard-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="admin-dashboard.html" class="sidebar-link active">📊 System Metrics</a></li>
+        <li><a href="admin-users.html" class="sidebar-link">👥 User Management</a></li>
+        <li><a href="admin-jobs.html" class="sidebar-link">📋 Job Moderation</a></li>
+        <li><a href="admin-reports.html" class="sidebar-link">⚠️ Reports & Disputes</a></li>
+        <li><a href="farmer-dashboard.html" class="sidebar-link">🚜 Farmer View</a></li>
+        <li><a href="labourer-dashboard.html" class="sidebar-link">🌾 Labourer View</a></li>
+      </ul>
+
+      <div class="sidebar-user">
+        <strong>Administrator</strong>
+        <div><span class="user-badge-role" style="background:#FEE2E2; color:#991B1B;">ADMIN</span></div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title">Platform Administration & Analytics</h1>
+          <p class="dashboard-subtitle">Monitor community activity, oversee worker allocation, and maintain compliance</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button onclick="exportCsv('users')" class="btn btn-secondary btn-sm">📥 Export Users CSV</button>
+          <button onclick="exportCsv('jobs')" class="btn btn-secondary btn-sm">📥 Export Jobs CSV</button>
+        </div>
+      </div>
+
+      <!-- Real Metrics Stat Cards Grid -->
+      <div class="stats-grid">
+        <div class="stat-card stat-forest">
+          <span class="stat-label">Total Registered Users</span>
+          <span class="stat-value" id="adm-total-users">0</span>
+        </div>
+
+        <div class="stat-card stat-fresh">
+          <span class="stat-label">Total Farmers</span>
+          <span class="stat-value" id="adm-total-farmers">0</span>
+        </div>
+
+        <div class="stat-card stat-gold">
+          <span class="stat-label">Total Labourers</span>
+          <span class="stat-value" id="adm-total-labourers">0</span>
+        </div>
+
+        <div class="stat-card stat-forest">
+          <span class="stat-label">Total Jobs Posted</span>
+          <span class="stat-value" id="adm-total-jobs">0</span>
+        </div>
+
+        <div class="stat-card stat-fresh">
+          <span class="stat-label">Active Open Jobs</span>
+          <span class="stat-value" id="adm-active-jobs">0</span>
+        </div>
+
+        <div class="stat-card stat-gold">
+          <span class="stat-label">Total Applications</span>
+          <span class="stat-value" id="adm-total-apps">0</span>
+        </div>
+
+        <div class="stat-card stat-fresh">
+          <span class="stat-label">Confirmed Assignments</span>
+          <span class="stat-value" id="adm-total-assignments">0</span>
+        </div>
+
+        <div class="stat-card stat-danger">
+          <span class="stat-label">Pending Reports</span>
+          <span class="stat-value" id="adm-pending-reports">0</span>
+        </div>
+      </div>
+
+      <!-- Quick Admin Actions Grid -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+        <div class="card">
+          <h3 style="color:var(--color-forest); margin-bottom:8px;">👥 User Moderation</h3>
+          <p style="color:var(--color-text-secondary); font-size:0.9rem; margin-bottom:16px;">
+            Search accounts, inspect profile details, and suspend or reactivate users with audit records.
+          </p>
+          <a href="admin-users.html" class="btn btn-primary btn-sm">Manage Users</a>
+        </div>
+
+        <div class="card">
+          <h3 style="color:var(--color-forest); margin-bottom:8px;">📋 Job Moderation</h3>
+          <p style="color:var(--color-text-secondary); font-size:0.9rem; margin-bottom:16px;">
+            Review listings, verify fair wage rates, and pause or close non-compliant postings.
+          </p>
+          <a href="admin-jobs.html" class="btn btn-primary btn-sm">Moderate Jobs</a>
+        </div>
+
+        <div class="card">
+          <h3 style="color:var(--color-forest); margin-bottom:8px;">⚠️ Grievance Resolution</h3>
+          <p style="color:var(--color-text-secondary); font-size:0.9rem; margin-bottom:16px;">
+            Investigate community complaints regarding safety hazards, inaccurate wages, or disputes.
+          </p>
+          <a href="admin-reports.html" class="btn btn-primary btn-sm">View Reports</a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['ADMIN'])) return;
+      loadAdminStats();
+    });
+
+    async function loadAdminStats() {
+      try {
+        const res = await window.api.get('/api/admin/stats');
+        if (res.success && res.data) {
+          const s = res.data;
+          document.getElementById('adm-total-users').textContent = s.totalUsers;
+          document.getElementById('adm-total-farmers').textContent = s.totalFarmers;
+          document.getElementById('adm-total-labourers').textContent = s.totalLabourers;
+          document.getElementById('adm-total-jobs').textContent = s.totalJobs;
+          document.getElementById('adm-active-jobs').textContent = s.activeJobs;
+          document.getElementById('adm-total-apps').textContent = s.totalApplications;
+          document.getElementById('adm-total-assignments').textContent = s.totalAssignments;
+          document.getElementById('adm-pending-reports').textContent = s.pendingReports;
+        }
+      } catch (err) {
+        console.error('Failed to load admin metrics', err);
+      }
+    }
+
+    async function exportCsv(type) {
+      try {
+        const csv = await window.api.get(`/api/admin/export/${type}-csv`);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `agrisetu-${type}-export.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.toast.success(`${type.toUpperCase()} exported to CSV successfully!`);
+      } catch (err) {
+        window.toast.error('Failed to export CSV: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Applications — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="dashboard-wrapper">
+    <aside class="dashboard-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="farmer-dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="create-job.html" class="sidebar-link">➕ Post New Job</a></li>
+        <li><a href="manage-jobs.html" class="sidebar-link">📋 Manage Jobs</a></li>
+        <li><a href="applications.html" class="sidebar-link active">👥 Applications</a></li>
+        <li><a href="assignments.html" class="sidebar-link">🚜 Work Assignments</a></li>
+        <li><a href="notifications.html" class="sidebar-link">🔔 Notifications</a></li>
+        <li><a href="profile.html" class="sidebar-link">👤 My Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title">Review Worker Applications</h1>
+          <p class="dashboard-subtitle">Select applicants, verify skills, and allocate vacancies</p>
+        </div>
+      </div>
+
+      <!-- Job Selector & Capacity Banner -->
+      <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--color-primary);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+          <div style="flex-grow:1; max-width:400px;">
+            <label class="form-label">Select Agricultural Job</label>
+            <select id="job-select" class="form-control" onchange="onJobSelectChange()">
+              <option value="">Loading your posted jobs...</option>
+            </select>
+          </div>
+
+          <!-- Live Vacancy Tracker -->
+          <div id="vacancy-banner" style="background:var(--color-mint); border:1px solid var(--color-border-green); padding:12px 18px; border-radius:var(--radius-md); min-width:280px; display:none;">
+            <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.9rem; margin-bottom:6px;">
+              <span>Allocation Progress</span>
+              <span id="banner-vacancy-count" class="text-success">0 open</span>
+            </div>
+            <div class="progress-bar">
+              <div id="banner-progress-fill" class="progress-fill" style="width:0%;"></div>
+            </div>
+            <div style="font-size:0.8rem; color:var(--color-text-secondary); margin-top:4px; display:flex; justify-content:space-between;">
+              <span id="banner-confirmed-count">Confirmed: 0</span>
+              <span id="banner-required-count">Capacity: 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applications List Card -->
+      <div class="card">
+        <h3 id="apps-header" style="color:var(--color-forest); margin-bottom:16px;">Applicants</h3>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Applicant Name</th>
+                <th>Experience & Skills</th>
+                <th>Applied Date</th>
+                <th>Cover Note</th>
+                <th>Contact Details</th>
+                <th>Status</th>
+                <th>Decision Actions</th>
+              </tr>
+            </thead>
+            <tbody id="applications-table-body">
+              <tr>
+                <td colspan="7" style="text-align:center; padding:32px;">Please select a job above to view applicants.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    let myJobs = [];
+    let selectedJob = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['FARMER', 'ADMIN'])) return;
+      loadJobsDropdown();
+    });
+
+    async function loadJobsDropdown() {
+      const select = document.getElementById('job-select');
+      try {
+        const res = await window.api.get('/api/jobs/farmer/my-jobs');
+        if (res.success && res.data && res.data.length > 0) {
+          myJobs = res.data;
+          select.innerHTML = myJobs.map(j => `
+            <option value="${j.id}">${escapeHtml(j.title)} (${j.remainingVacancies} vacancies open)</option>
+          `).join('');
+
+          // Check if jobId passed in URL
+          const params = new URLSearchParams(window.location.search);
+          const urlJobId = params.get('jobId');
+          if (urlJobId) {
+            select.value = urlJobId;
+          }
+
+          onJobSelectChange();
+        } else {
+          select.innerHTML = '<option value="">No jobs posted yet</option>';
+          document.getElementById('applications-table-body').innerHTML = `
+            <tr><td colspan="7" style="text-align:center; padding:32px;">
+              You have not posted any jobs yet. <a href="create-job.html" class="btn btn-primary btn-sm">Post a Job</a>
+            </td></tr>
+          `;
+        }
+      } catch (err) {
+        select.innerHTML = `<option value="">Failed to load jobs: ${escapeHtml(err.message)}</option>`;
+      }
+    }
+
+    function onJobSelectChange() {
+      const select = document.getElementById('job-select');
+      const jobId = select.value;
+      if (!jobId) return;
+
+      selectedJob = myJobs.find(j => j.id == jobId);
+      updateVacancyBanner(selectedJob);
+      loadApplicationsForJob(jobId);
+    }
+
+    function updateVacancyBanner(job) {
+      if (!job) return;
+      const banner = document.getElementById('vacancy-banner');
+      banner.style.display = 'block';
+
+      const percent = Math.min(100, Math.round((job.confirmedWorkers / job.requiredWorkers) * 100));
+      const isFull = job.remainingVacancies <= 0;
+
+      document.getElementById('banner-progress-fill').style.width = `${percent}%`;
+      document.getElementById('banner-progress-fill').style.background = isFull ? 'var(--color-danger)' : 'var(--color-fresh)';
+      document.getElementById('banner-vacancy-count').textContent = isFull ? 'FULL (0 vacancies)' : `${job.remainingVacancies} vacancies open`;
+      document.getElementById('banner-vacancy-count').style.color = isFull ? 'var(--color-danger)' : 'var(--color-forest)';
+      document.getElementById('banner-confirmed-count').textContent = `Confirmed: ${job.confirmedWorkers}`;
+      document.getElementById('banner-required-count').textContent = `Required: ${job.requiredWorkers}`;
+    }
+
+    async function loadApplicationsForJob(jobId) {
+      const tbody = document.getElementById('applications-table-body');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px;">Loading applicants...</td></tr>';
+
+      try {
+        const res = await window.api.get(`/api/applications/job/${jobId}`);
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.map(app => {
+            let badgeClass = 'badge-warning';
+            if (app.status === 'ACCEPTED') badgeClass = 'badge-success';
+            else if (app.status === 'REJECTED') badgeClass = 'badge-danger';
+            else if (app.status === 'WITHDRAWN') badgeClass = 'badge-neutral';
+
+            const isPending = app.status === 'PENDING';
+            const isFull = selectedJob && selectedJob.remainingVacancies <= 0;
+
+            return `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(app.labourerName)}</strong>
+                </td>
+                <td>
+                  <div>${escapeHtml(app.labourerSkills || 'General Agricultural Labour')}</div>
+                  <small style="color:var(--color-text-secondary);">${app.labourerExperienceYears || 0} years experience</small>
+                </td>
+                <td><small>${app.appliedAt ? app.appliedAt.replace('T', ' ').substring(0, 16) : '-'}</small></td>
+                <td><small style="font-style:italic;">"${escapeHtml(app.coverNote || 'No cover note')}"</small></td>
+                <td>
+                  ${app.contactVisible ? `
+                    <a href="tel:${app.labourerPhone}" class="btn-contact">
+                      📞 ${app.labourerPhone}
+                    </a>
+                  ` : `
+                    <span style="color:var(--color-text-secondary); font-size:0.85rem;" title="Hidden until accepted">
+                      🔒 ${app.labourerPhone}
+                    </span>
+                  `}
+                </td>
+                <td><span class="badge ${badgeClass}">${app.status}</span></td>
+                <td>
+                  ${isPending ? `
+                    <div style="display:flex; gap:6px;">
+                      <button onclick="decideApp(${app.id}, 'ACCEPTED')" class="btn btn-primary btn-sm" ${isFull ? 'disabled title="Capacity reached"' : ''}>
+                        ✓ Accept
+                      </button>
+                      <button onclick="decideApp(${app.id}, 'REJECTED')" class="btn btn-secondary btn-sm" style="color:var(--color-danger);">
+                        ✕ Reject
+                      </button>
+                    </div>
+                  ` : `
+                    <small style="color:var(--color-text-secondary); font-weight:600;">
+                      ${app.status === 'ACCEPTED' ? '✓ Assigned' : 'Decided'}
+                    </small>
+                  `}
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align:center; padding:32px;">
+                No applications submitted for this job yet.
+              </td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Failed to load applications: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    async function decideApp(applicationId, decision) {
+      const reason = prompt(`Enter optional note for applicant (${decision}):`, decision === 'ACCEPTED' ? 'Accepted for work' : 'Positions filled');
+      if (reason === null) return; // User cancelled prompt
+
+      try {
+        const res = await window.api.post(`/api/applications/${applicationId}/decision`, {
+          status: decision,
+          decisionReason: reason.trim()
+        });
+        window.toast.success(`Application marked as ${decision}!`);
+
+        // Refresh jobs and applications
+        const resJobs = await window.api.get('/api/jobs/farmer/my-jobs');
+        if (resJobs.success && resJobs.data) {
+          myJobs = resJobs.data;
+          const select = document.getElementById('job-select');
+          selectedJob = myJobs.find(j => j.id == select.value);
+          updateVacancyBanner(selectedJob);
+          loadApplicationsForJob(select.value);
+        }
+      } catch (err) {
+        window.toast.error(err.message || 'Failed to update application');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

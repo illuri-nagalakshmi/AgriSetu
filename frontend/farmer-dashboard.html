@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmer Dashboard — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="dashboard-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="farmer-dashboard.html" class="sidebar-link active">📊 Dashboard</a></li>
+        <li><a href="create-job.html" class="sidebar-link">➕ Post New Job</a></li>
+        <li><a href="manage-jobs.html" class="sidebar-link">📋 Manage Jobs</a></li>
+        <li><a href="applications.html" class="sidebar-link">👥 Applications</a></li>
+        <li><a href="assignments.html" class="sidebar-link">🚜 Work Assignments</a></li>
+        <li><a href="notifications.html" class="sidebar-link">🔔 Notifications</a></li>
+        <li><a href="profile.html" class="sidebar-link">👤 My Profile</a></li>
+      </ul>
+
+      <div class="sidebar-user">
+        <strong id="user-display-name">Farmer</strong>
+        <div><span class="user-badge-role">FARMER</span></div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title" data-i18n="dash_farmer_title">Farmer Dashboard</h1>
+          <p class="dashboard-subtitle">Real-time agricultural worker allocations & jobs metrics</p>
+        </div>
+        <div>
+          <a href="create-job.html" class="btn btn-primary">➕ Post New Agricultural Job</a>
+        </div>
+      </div>
+
+      <!-- Real Metrics Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card stat-forest">
+          <span class="stat-label" data-i18n="dash_total_jobs">Total Jobs Posted</span>
+          <span class="stat-value" id="stat-total-jobs">0</span>
+        </div>
+
+        <div class="stat-card stat-fresh">
+          <span class="stat-label" data-i18n="dash_active_jobs">Active Open Jobs</span>
+          <span class="stat-value" id="stat-active-jobs">0</span>
+        </div>
+
+        <div class="stat-card stat-gold">
+          <span class="stat-label" data-i18n="dash_applications_received">Applications Received</span>
+          <span class="stat-value" id="stat-applications">0</span>
+        </div>
+
+        <div class="stat-card stat-fresh">
+          <span class="stat-label" data-i18n="dash_confirmed_workers">Confirmed Workers</span>
+          <span class="stat-value" id="stat-confirmed-workers">0</span>
+        </div>
+
+        <div class="stat-card stat-gold">
+          <span class="stat-label" data-i18n="dash_remaining_vacancies">Remaining Vacancies</span>
+          <span class="stat-value" id="stat-remaining-vacancies">0</span>
+        </div>
+      </div>
+
+      <!-- Quick Jobs Summary Table -->
+      <div class="card" style="margin-bottom: 32px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px;">
+          <h3 style="color: var(--color-forest);">My Posted Agricultural Jobs</h3>
+          <a href="manage-jobs.html" class="btn btn-outline btn-sm">View All Jobs</a>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Job Title & Crop</th>
+                <th>Location</th>
+                <th>Daily Wage</th>
+                <th>Required / Confirmed</th>
+                <th>Vacancies</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="farmer-jobs-table-body">
+              <tr>
+                <td colspan="7" style="text-align:center; padding: 24px;">Loading jobs data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['FARMER', 'ADMIN'])) return;
+
+      const user = window.auth.getUser();
+      document.getElementById('user-display-name').textContent = user.fullName;
+
+      loadStats();
+      loadJobs();
+    });
+
+    async function loadStats() {
+      try {
+        const res = await window.api.get('/api/users/dashboard-stats');
+        if (res.success && res.data) {
+          const s = res.data;
+          document.getElementById('stat-total-jobs').textContent = s.totalJobs;
+          document.getElementById('stat-active-jobs').textContent = s.activeJobs;
+          document.getElementById('stat-applications').textContent = s.applicationsReceived;
+          document.getElementById('stat-confirmed-workers').textContent = s.confirmedWorkers;
+          document.getElementById('stat-remaining-vacancies').textContent = s.remainingVacancies;
+        }
+      } catch (err) {
+        console.error('Failed to load stats', err);
+      }
+    }
+
+    async function loadJobs() {
+      const tbody = document.getElementById('farmer-jobs-table-body');
+      try {
+        const res = await window.api.get('/api/jobs/farmer/my-jobs');
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.slice(0, 5).map(j => {
+            const isFull = j.remainingVacancies <= 0;
+            return `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(j.title)}</strong><br>
+                  <small style="color:var(--color-text-secondary);">${escapeHtml(j.category)}</small>
+                </td>
+                <td>${escapeHtml(j.village)}, ${escapeHtml(j.district)}</td>
+                <td>₹${j.wageAmount} / ${j.wageBasis.toLowerCase()}</td>
+                <td><strong>${j.confirmedWorkers}</strong> / ${j.requiredWorkers}</td>
+                <td>
+                  <span class="vacancy-pill ${isFull ? 'vacancy-full' : 'vacancy-available'}">
+                    ${isFull ? 'FULL (0)' : `${j.remainingVacancies} open`}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge ${j.status === 'PUBLISHED' ? 'badge-success' : 'badge-neutral'}">
+                    ${j.status}
+                  </span>
+                </td>
+                <td>
+                  <a href="applications.html?jobId=${j.id}" class="btn btn-secondary btn-sm" title="View Applicants">
+                    Applicants
+                  </a>
+                  <a href="job-details.html?id=${j.id}" class="btn btn-outline btn-sm">
+                    View
+                  </a>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align:center; padding:32px;">
+                <p style="color:var(--color-text-secondary); margin-bottom:12px;">You haven't posted any agricultural jobs yet.</p>
+                <a href="create-job.html" class="btn btn-primary btn-sm">Post Your First Job</a>
+              </td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        tbody.innerHTML = `
+          <tr><td colspan="7" style="color:red; text-align:center;">Failed to load jobs: ${escapeHtml(err.message)}</td></tr>
+        `;
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

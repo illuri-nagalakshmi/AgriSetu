@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Labourer Dashboard — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="labourer-dashboard.html" class="sidebar-link active">📊 Dashboard</a></li>
+        <li><a href="jobs.html" class="sidebar-link">🔍 Find Jobs</a></li>
+        <li><a href="my-applications.html" class="sidebar-link">📄 My Applications</a></li>
+        <li><a href="assignments.html" class="sidebar-link">🌾 Work Assignments</a></li>
+        <li><a href="saved-jobs.html" class="sidebar-link">⭐ Saved Jobs</a></li>
+        <li><a href="notifications.html" class="sidebar-link">🔔 Notifications</a></li>
+        <li><a href="profile.html" class="sidebar-link">👤 My Profile</a></li>
+      </ul>
+
+      <div class="sidebar-user">
+        <strong id="user-display-name">Worker</strong>
+        <div><span class="user-badge-role">LABOURER</span></div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title" data-i18n="dash_labourer_title">Labourer Dashboard</h1>
+          <p class="dashboard-subtitle">Track your agricultural applications, upcoming work, and ratings</p>
+        </div>
+        <div>
+          <a href="jobs.html" class="btn btn-primary">🔍 Browse Open Jobs</a>
+        </div>
+      </div>
+
+      <!-- Real Metrics Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card stat-forest">
+          <span class="stat-label" data-i18n="dash_total_apps">Total Applications</span>
+          <span class="stat-value" id="stat-total-apps">0</span>
+        </div>
+
+        <div class="stat-card stat-gold">
+          <span class="stat-label" data-i18n="dash_pending_apps">Pending Decision</span>
+          <span class="stat-value" id="stat-pending-apps">0</span>
+        </div>
+
+        <div class="stat-card stat-fresh">
+          <span class="stat-label" data-i18n="dash_accepted_apps">Accepted Applications</span>
+          <span class="stat-value" id="stat-accepted-apps">0</span>
+        </div>
+
+        <div class="stat-card stat-forest">
+          <span class="stat-label" data-i18n="dash_active_assignments">Active Assignments</span>
+          <span class="stat-value" id="stat-active-assignments">0</span>
+        </div>
+
+        <div class="stat-card stat-fresh">
+          <span class="stat-label" data-i18n="dash_completed_assignments">Completed Work</span>
+          <span class="stat-value" id="stat-completed-assignments">0</span>
+        </div>
+      </div>
+
+      <!-- My Recent Applications -->
+      <div class="card" style="margin-bottom: 32px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px;">
+          <h3 style="color: var(--color-forest);">My Recent Applications</h3>
+          <a href="my-applications.html" class="btn btn-outline btn-sm">View All Applications</a>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Job Title & Crop</th>
+                <th>Applied Date</th>
+                <th>Status</th>
+                <th>Decision / Note</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="labourer-apps-body">
+              <tr>
+                <td colspan="5" style="text-align:center; padding: 24px;">Loading applications...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recommended Jobs for You -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px;">
+          <h3 style="color: var(--color-forest);">Recommended Jobs Near You</h3>
+          <a href="jobs.html" class="btn btn-outline btn-sm">Explore Marketplace</a>
+        </div>
+
+        <div id="recommended-jobs-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+          <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--color-text-secondary);">
+            Loading recommended jobs...
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/jobs.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['LABOURER', 'ADMIN'])) return;
+
+      const user = window.auth.getUser();
+      document.getElementById('user-display-name').textContent = user.fullName;
+
+      loadStats();
+      loadRecentApplications();
+      loadRecommendedJobs();
+    });
+
+    async function loadStats() {
+      try {
+        const res = await window.api.get('/api/users/dashboard-stats');
+        if (res.success && res.data) {
+          const s = res.data;
+          document.getElementById('stat-total-apps').textContent = s.totalApplications;
+          document.getElementById('stat-pending-apps').textContent = s.pendingApplications;
+          document.getElementById('stat-accepted-apps').textContent = s.acceptedApplications;
+          document.getElementById('stat-active-assignments').textContent = s.activeAssignments;
+          document.getElementById('stat-completed-assignments').textContent = s.completedAssignments;
+        }
+      } catch (err) {
+        console.error('Failed to load stats', err);
+      }
+    }
+
+    async function loadRecentApplications() {
+      const tbody = document.getElementById('labourer-apps-body');
+      try {
+        const res = await window.api.get('/api/applications/my');
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.slice(0, 5).map(app => {
+            let badgeClass = 'badge-neutral';
+            if (app.status === 'ACCEPTED') badgeClass = 'badge-success';
+            else if (app.status === 'REJECTED') badgeClass = 'badge-danger';
+            else if (app.status === 'PENDING') badgeClass = 'badge-warning';
+
+            return `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(app.jobTitle)}</strong><br>
+                  <small style="color:var(--color-text-secondary);">${escapeHtml(app.jobCategory)}</small>
+                </td>
+                <td>${app.appliedAt ? app.appliedAt.replace('T', ' ').substring(0, 16) : '-'}</td>
+                <td><span class="badge ${badgeClass}">${app.status}</span></td>
+                <td>${escapeHtml(app.decisionReason || app.coverNote || '-')}</td>
+                <td>
+                  <a href="job-details.html?id=${app.jobId}" class="btn btn-outline btn-sm">View Job</a>
+                  ${app.status === 'ACCEPTED' ? `
+                    <a href="assignments.html" class="btn btn-primary btn-sm">View Assignment</a>
+                  ` : ''}
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align:center; padding:32px;">
+                <p style="color:var(--color-text-secondary); margin-bottom:12px;">You haven't applied for any jobs yet.</p>
+                <a href="jobs.html" class="btn btn-primary btn-sm">Browse Available Jobs</a>
+              </td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Failed to load applications: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    async function loadRecommendedJobs() {
+      const container = document.getElementById('recommended-jobs-list');
+      try {
+        const res = await window.api.get('/api/jobs/featured');
+        if (res.success && res.data && res.data.length > 0) {
+          container.innerHTML = res.data.slice(0, 4).map(renderJobCard).join('');
+        } else {
+          container.innerHTML = '<p style="color:var(--color-text-secondary);">No recommended jobs currently open.</p>';
+        }
+      } catch (err) {
+        container.innerHTML = `<p style="color:red;">Error: ${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

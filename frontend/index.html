@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriSetu — Connecting Farmers. Empowering Labourers.</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <!-- Dynamic Navigation Header -->
+  <div id="navbar-container"></div>
+
+  <!-- Hero Section -->
+  <header style="background: linear-gradient(135deg, #F0FDF4 0%, #FAFCF8 100%); border-bottom: 1px solid var(--color-border); padding: 72px 0 60px;">
+    <div class="container" style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: center;">
+      <div>
+        <span class="badge badge-success" style="margin-bottom: 14px;">🌱 Community Service Project</span>
+        <h1 style="font-size: 2.8rem; font-weight: 800; color: var(--color-forest); line-height: 1.15; margin-bottom: 18px;" data-i18n="hero_title">
+          Connecting Farmers with Skilled Agricultural Labourers
+        </h1>
+        <p style="font-size: 1.15rem; color: var(--color-text-secondary); margin-bottom: 28px;" data-i18n="hero_subtitle">
+          A trusted community platform bridging local agricultural work opportunities with transparent daily wages, fair terms, and mutual respect.
+        </p>
+
+        <div style="display:flex; gap: 16px; flex-wrap: wrap;">
+          <a href="jobs.html" class="btn btn-primary btn-lg" data-i18n="btn_find_work">Find Agricultural Work</a>
+          <a href="login.html?role=farmer" class="btn btn-harvest btn-lg" data-i18n="btn_hire_workers">Hire Workers / Post Job</a>
+        </div>
+      </div>
+
+      <!-- Quick Search Filter Box -->
+      <div class="card" style="box-shadow: var(--shadow-lg); border-top: 4px solid var(--color-primary);">
+        <h3 style="color: var(--color-forest); margin-bottom: 16px;">🔍 Find Work Near You</h3>
+        <form id="hero-search-form" onsubmit="handleHeroSearch(event)">
+          <div class="form-group">
+            <label class="form-label">Crop Work Category</label>
+            <select id="hero-category" class="form-control">
+              <option value="">All Agricultural Categories</option>
+              <option value="Harvesting">Harvesting (కోత / कटाई)</option>
+              <option value="Sowing">Sowing (విత్తనం నాటుట / बुवाई)</option>
+              <option value="Ploughing">Ploughing (దుక్కి దున్నుట / जुताई)</option>
+              <option value="Weeding">Weeding (కలుపు తీయుట / निराई)</option>
+              <option value="Irrigation">Irrigation (నీటిపారుదల / सिंचाई)</option>
+              <option value="Planting">Planting (నాట్లు వేయుట / रोपाई)</option>
+              <option value="Fertilizer Application">Fertilizer Application (ఎరువులు వేయుట / खाद छिड़काव)</option>
+              <option value="Fruit Picking">Fruit Picking (పండ్ల కోత / फल तुड़ाई)</option>
+              <option value="General Agricultural Labour">General Agricultural Labour</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Location (District or Village)</label>
+            <input type="text" id="hero-location" class="form-control" placeholder="e.g. Guntur, Nizamabad, Tenali...">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Min Daily Wage (₹)</label>
+              <input type="number" id="hero-min-wage" class="form-control" placeholder="e.g. 500" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Meals Provided</label>
+              <select id="hero-meals" class="form-control">
+                <option value="">Any</option>
+                <option value="true">Yes, Meals Provided</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 6px;" data-i18n="btn_search">Search Jobs</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <!-- How It Works Section -->
+  <section style="padding: 64px 0; background: var(--color-white); border-bottom: 1px solid var(--color-border);">
+    <div class="container">
+      <div style="text-align: center; max-width: 650px; margin: 0 auto 48px;">
+        <h2 style="font-size: 2.2rem; color: var(--color-forest);" data-i18n="how_it_works_title">How AgriSetu Works</h2>
+        <p style="color: var(--color-text-secondary); margin-top: 8px;">A transparent, fair 4-step workflow connecting rural supply and demand.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 36px;">
+        <!-- Farmers Column -->
+        <div class="card" style="border-left: 4px solid var(--color-primary);">
+          <h3 style="color: var(--color-forest); display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            🚜 <span data-i18n="how_farmer_title">For Farmers</span>
+          </h3>
+          <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 16px; color: var(--color-text-main);">
+            <li data-i18n="how_farmer_step1">Post job details, required number of workers, and transparent daily wages.</li>
+            <li data-i18n="how_farmer_step2">Review verified local labourer applications with skills & experience.</li>
+            <li data-i18n="how_farmer_step3">Accept workers with real-time vacancy tracking and zero overbooking.</li>
+            <li data-i18n="how_farmer_step4">Confirm completed work, reveal contact numbers, and share mutual ratings.</li>
+          </ol>
+        </div>
+
+        <!-- Labourers Column -->
+        <div class="card" style="border-left: 4px solid var(--color-harvest-gold);">
+          <h3 style="color: var(--color-forest); display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            🌾 <span data-i18n="how_labourer_title">For Agricultural Labourers</span>
+          </h3>
+          <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 16px; color: var(--color-text-main);">
+            <li data-i18n="how_labourer_step1">Search verified local jobs by village, crop category, and wage.</li>
+            <li data-i18n="how_labourer_step2">Apply with 1-click without revealing your phone number publicly.</li>
+            <li data-i18n="how_labourer_step3">Receive instant notifications when your application is accepted.</li>
+            <li data-i18n="how_labourer_step4">Access direct farm contact, complete work, and build your digital reputation.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Jobs Section -->
+  <section style="padding: 64px 0;">
+    <div class="container">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <span class="badge badge-info" style="margin-bottom: 6px;">Live Openings</span>
+          <h2 style="font-size: 2rem; color: var(--color-forest);" data-i18n="featured_jobs_title">Recent Agricultural Job Openings</h2>
+        </div>
+        <a href="jobs.html" class="btn btn-outline" data-i18n="view_all_jobs">View All Jobs →</a>
+      </div>
+
+      <div id="featured-jobs-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--color-text-secondary);">
+          Loading active agricultural openings from database...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Features Grid -->
+  <section style="padding: 64px 0; background: var(--color-mint); border-top: 1px solid var(--color-border-green); border-bottom: 1px solid var(--color-border-green);">
+    <div class="container">
+      <div style="text-align: center; max-width: 600px; margin: 0 auto 48px;">
+        <h2 style="font-size: 2.2rem; color: var(--color-forest);" data-i18n="features_title">Why AgriSetu?</h2>
+        <p style="color: var(--color-text-secondary);">Engineered specifically for agricultural communities with privacy, correctness, and multi-language support.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
+        <div class="card">
+          <div style="font-size: 2rem; margin-bottom: 12px;">🏡</div>
+          <h3 style="color: var(--color-forest); margin-bottom: 8px;" data-i18n="feat_local_title">Local Employment</h3>
+          <p style="color: var(--color-text-secondary); font-size: 0.95rem;" data-i18n="feat_local_desc">Discover work opportunities directly within your village and district without middleman commission.</p>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 2rem; margin-bottom: 12px;">💵</div>
+          <h3 style="color: var(--color-forest); margin-bottom: 8px;" data-i18n="feat_wage_title">Transparent Wages</h3>
+          <p style="color: var(--color-text-secondary); font-size: 0.95rem;" data-i18n="feat_wage_desc">Clear daily or hourly wage rates, meal provisions, and working hours visible upfront.</p>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 2rem; margin-bottom: 12px;">🔒</div>
+          <h3 style="color: var(--color-forest); margin-bottom: 8px;" data-i18n="feat_privacy_title">Contact Privacy</h3>
+          <p style="color: var(--color-text-secondary); font-size: 0.95rem;" data-i18n="feat_privacy_desc">Phone numbers remain protected and are disclosed only after an application is confirmed.</p>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 2rem; margin-bottom: 12px;">⚖️</div>
+          <h3 style="color: var(--color-forest); margin-bottom: 8px;" data-i18n="feat_allocation_title">Smart Worker Allocation</h3>
+          <p style="color: var(--color-text-secondary); font-size: 0.95rem;" data-i18n="feat_allocation_desc">Strict vacancy accounting prevents overbooking and guarantees fair allocation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Community Impact Section -->
+  <section style="padding: 56px 0; text-align: center;">
+    <div class="container" style="max-width: 800px;">
+      <h2 style="color: var(--color-forest); margin-bottom: 16px;">Community Service Project (CSP) Mission</h2>
+      <p style="color: var(--color-text-secondary); line-height: 1.7; margin-bottom: 24px;">
+        AgriSetu was developed as a Community Service Project to tackle rural agricultural underemployment and seasonal labour shortages. By eliminating exploitative intermediaries, offering Telugu, Hindi, and English access, and enforcing strict data privacy, AgriSetu demonstrates how software engineering can create lasting community value.
+      </p>
+      <div style="display:inline-flex; gap: 12px;">
+        <a href="about.html" class="btn btn-secondary">Read Full Mission</a>
+        <a href="privacy.html" class="btn btn-outline">Privacy & Safety Standards</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+            <img src="images/logo.svg" alt="AgriSetu" height="38" style="filter: brightness(0) invert(1);">
+          </div>
+          <p style="font-size: 0.9rem; line-height: 1.6; color: #BBF7D0;" data-i18n="footer_desc">
+            AgriSetu is a Community Service Project (CSP) empowering rural livelihoods by directly connecting farmers with skilled agricultural labourers across India.
+          </p>
+        </div>
+
+        <div>
+          <h4 style="color: #FFFFFF; margin-bottom: 14px;" data-i18n="footer_quick_links">Quick Links</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+            <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+            <li><a href="jobs.html" data-i18n="nav_find_work">Find Work</a></li>
+            <li><a href="login.html?role=farmer" data-i18n="nav_hire_workers">Hire Workers</a></li>
+            <li><a href="about.html" data-i18n="nav_about">About Project</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="color: #FFFFFF; margin-bottom: 14px;" data-i18n="footer_support">Support & Safety</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+            <li><a href="privacy.html" data-i18n="nav_privacy">Privacy Policy</a></li>
+            <li><a href="about.html#safety">Worker Safety Guidelines</a></li>
+            <li><a href="login.html">Demonstration Logins</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="color: #FFFFFF; margin-bottom: 14px;">Languages</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+            <li><a href="javascript:void(0)" onclick="window.i18n.setLanguage('en')">English</a></li>
+            <li><a href="javascript:void(0)" onclick="window.i18n.setLanguage('te')">తెలుగు (Telugu)</a></li>
+            <li><a href="javascript:void(0)" onclick="window.i18n.setLanguage('hi')">हिन्दी (Hindi)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 AgriSetu. <span data-i18n="footer_csp_notice">CSP Project Demonstration • Secure & Non-Profit Initiative</span>. <span data-i18n="footer_rights">All rights reserved.</span></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/jobs.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFeaturedJobs();
+    });
+
+    async function loadFeaturedJobs() {
+      const container = document.getElementById('featured-jobs-list');
+      try {
+        const res = await window.api.get('/api/jobs/featured');
+        if (res.success && res.data && res.data.length > 0) {
+          container.innerHTML = res.data.map(renderJobCard).join('');
+        } else {
+          container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border-radius: var(--radius-md); border: 1px dashed var(--color-border);">
+              <p style="font-size: 1.1rem; color: var(--color-text-secondary); margin-bottom: 12px;">No jobs posted yet in the demonstration database.</p>
+              <a href="login.html?role=farmer" class="btn btn-primary btn-sm">Post the First Job as Farmer</a>
+            </div>
+          `;
+        }
+      } catch (err) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 30px; background: #FEE2E2; border-radius: var(--radius-md); color: #991B1B;">
+            <p>Could not connect to backend server on port 8080. Please ensure Spring Boot is running.</p>
+          </div>
+        `;
+      }
+    }
+
+    function handleHeroSearch(e) {
+      e.preventDefault();
+      const cat = document.getElementById('hero-category').value;
+      const loc = document.getElementById('hero-location').value;
+      const minWage = document.getElementById('hero-min-wage').value;
+      const meals = document.getElementById('hero-meals').value;
+
+      const params = new URLSearchParams();
+      if (cat) params.append('category', cat);
+      if (loc) params.append('district', loc);
+      if (minWage) params.append('minWage', minWage);
+      if (meals) params.append('mealsProvided', meals);
+
+      window.location.href = `jobs.html?${params.toString()}`;
+    }
+  </script>
+</body>
+</html>

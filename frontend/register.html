@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body style="background: var(--color-mint);">
+
+  <div id="navbar-container"></div>
+
+  <div class="container" style="max-width: 680px; padding-top: 36px; padding-bottom: 60px;">
+    <div class="card" style="box-shadow: var(--shadow-lg); border-top: 5px solid var(--color-primary);">
+      
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="color: var(--color-forest);" data-i18n="register_title">Create an AgriSetu Account</h2>
+        <p style="color: var(--color-text-secondary); font-size: 0.95rem;">Join India's dedicated agricultural workforce network</p>
+      </div>
+
+      <div id="reg-error" class="alert alert-danger" style="display:none;"></div>
+
+      <form id="register-form" onsubmit="handleRegister(event)">
+        
+        <!-- Role Selection -->
+        <div class="form-group" style="background: var(--color-mint); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border-green);">
+          <label class="form-label" style="color: var(--color-forest);" data-i18n="label_role">I want to register as:</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600;">
+              <input type="radio" name="role" value="FARMER" checked onchange="toggleRoleFields('FARMER')">
+              👨‍🌾 Farmer (Need Workers)
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600;">
+              <input type="radio" name="role" value="LABOURER" onchange="toggleRoleFields('LABOURER')">
+              🌾 Agricultural Labourer
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_full_name">Full Name *</label>
+            <input type="text" id="fullName" class="form-control" required placeholder="e.g. Ramesh Kumar">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_email">Email Address *</label>
+            <input type="email" id="email" class="form-control" required placeholder="e.g. ramesh@example.com">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_phone">Mobile Number *</label>
+            <input type="tel" id="phoneNumber" class="form-control" required placeholder="+91 98480 11223" pattern="^\+?[0-9]{10,15}$">
+            <small style="color:var(--color-text-secondary); font-size:0.75rem;">Protected by privacy controls</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_preferred_language">Preferred Language</label>
+            <select id="preferredLanguage" class="form-control">
+              <option value="en">English</option>
+              <option value="te">తెలుగు (Telugu)</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_password">Password *</label>
+            <input type="password" id="password" class="form-control" required minlength="6" placeholder="At least 6 characters">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_confirm_password">Confirm Password *</label>
+            <input type="password" id="confirmPassword" class="form-control" required minlength="6" placeholder="Re-type password">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_village">Village / Town *</label>
+            <input type="text" id="village" class="form-control" required placeholder="e.g. Tenali">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_district">District *</label>
+            <input type="text" id="district" class="form-control" required placeholder="e.g. Guntur">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="label_state">State *</label>
+            <input type="text" id="state" class="form-control" required placeholder="e.g. Andhra Pradesh">
+          </div>
+        </div>
+
+        <!-- Dynamic Farmer Fields -->
+        <div id="farmer-fields" style="border-top: 1px solid var(--color-border); padding-top: 18px; margin-top: 8px;">
+          <h4 style="color: var(--color-forest); margin-bottom: 12px;">👨‍🌾 Farm Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Farm / Estate Name</label>
+              <input type="text" id="farmName" class="form-control" placeholder="e.g. Sri Venkateswara Paddy Farm">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Land Size (Acres)</label>
+              <input type="number" step="0.1" id="totalLandAcres" class="form-control" placeholder="e.g. 10.5">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Primary Crops Grown</label>
+            <input type="text" id="primaryCrops" class="form-control" placeholder="e.g. Paddy, Chilli, Cotton, Turmeric">
+          </div>
+        </div>
+
+        <!-- Dynamic Labourer Fields -->
+        <div id="labourer-fields" style="display:none; border-top: 1px solid var(--color-border); padding-top: 18px; margin-top: 8px;">
+          <h4 style="color: var(--color-forest); margin-bottom: 12px;">🌾 Skills & Experience</h4>
+          <div class="form-group">
+            <label class="form-label">Skills & Equipment Operation</label>
+            <input type="text" id="skills" class="form-control" placeholder="e.g. Paddy sickle harvesting, machine thresher, tractor driving">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Agricultural Experience (Years)</label>
+              <input type="number" id="experienceYears" class="form-control" min="0" placeholder="e.g. 5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expected Daily Wage (₹)</label>
+              <input type="number" id="expectedDailyWage" class="form-control" placeholder="e.g. 600">
+            </div>
+          </div>
+        </div>
+
+        <!-- Privacy Policy Agreement -->
+        <div class="form-group" style="margin-top: 16px;">
+          <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:0.9rem;">
+            <input type="checkbox" id="privacyConsent" required checked style="margin-top:3px;">
+            <span data-i18n="label_privacy_consent">
+              I understand my mobile number will be kept private and only revealed to farmers/labourers once an assignment is confirmed.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" id="btn-reg" class="btn btn-primary" style="width: 100%; margin-top: 12px;" data-i18n="btn_register">
+          Create Account
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 20px; font-size: 0.9rem;">
+        <a href="login.html" style="color: var(--color-primary); font-weight: 600; text-decoration: none;" data-i18n="have_account">
+          Already registered? Login here
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    function toggleRoleFields(role) {
+      const farmerFields = document.getElementById('farmer-fields');
+      const labourerFields = document.getElementById('labourer-fields');
+      if (role === 'FARMER') {
+        farmerFields.style.display = 'block';
+        labourerFields.style.display = 'none';
+      } else {
+        farmerFields.style.display = 'none';
+        labourerFields.style.display = 'block';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('reg-error');
+      errBox.style.display = 'none';
+
+      const pass = document.getElementById('password').value;
+      const confirmPass = document.getElementById('confirmPassword').value;
+
+      if (pass !== confirmPass) {
+        errBox.textContent = 'Passwords do not match';
+        errBox.style.display = 'block';
+        return;
+      }
+
+      const role = document.querySelector('input[name="role"]:checked').value;
+      const btn = document.getElementById('btn-reg');
+      btn.disabled = true;
+      btn.textContent = 'Creating Account...';
+
+      const payload = {
+        fullName: document.getElementById('fullName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phoneNumber: document.getElementById('phoneNumber').value.trim(),
+        password: pass,
+        confirmPassword: confirmPass,
+        role: role,
+        preferredLanguage: document.getElementById('preferredLanguage').value,
+        village: document.getElementById('village').value.trim(),
+        district: document.getElementById('district').value.trim(),
+        state: document.getElementById('state').value.trim(),
+        privacyConsent: document.getElementById('privacyConsent').checked,
+        // Farmer fields
+        farmName: document.getElementById('farmName').value.trim() || null,
+        totalLandAcres: document.getElementById('totalLandAcres').value ? parseFloat(document.getElementById('totalLandAcres').value) : null,
+        primaryCrops: document.getElementById('primaryCrops').value.trim() || null,
+        // Labourer fields
+        skills: document.getElementById('skills').value.trim() || null,
+        experienceYears: document.getElementById('experienceYears').value ? parseInt(document.getElementById('experienceYears').value) : 0,
+        expectedDailyWage: document.getElementById('expectedDailyWage').value ? parseFloat(document.getElementById('expectedDailyWage').value) : null
+      };
+
+      try {
+        const user = await window.auth.register(payload);
+        if (user.role === 'FARMER') window.location.href = 'farmer-dashboard.html';
+        else if (user.role === 'LABOURER') window.location.href = 'labourer-dashboard.html';
+        else window.location.href = 'index.html';
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        errBox.textContent = err.message || 'Registration failed';
+        errBox.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

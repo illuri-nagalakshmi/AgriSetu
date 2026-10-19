@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saved Jobs — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="container" style="padding-top: 36px; padding-bottom: 60px;">
+    
+    <div style="margin-bottom: 24px;">
+      <h1 class="dashboard-title">Bookmarked / Saved Jobs</h1>
+      <p class="dashboard-subtitle">Agricultural opportunities you have saved for later review</p>
+    </div>
+
+    <div id="saved-jobs-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+      <div style="grid-column: 1 / -1; text-align:center; padding: 40px; color:var(--color-text-secondary);">
+        Loading saved jobs...
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/jobs.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['LABOURER', 'ADMIN'])) return;
+      loadSavedJobs();
+    });
+
+    async function loadSavedJobs() {
+      const container = document.getElementById('saved-jobs-grid');
+      try {
+        const res = await window.api.get('/api/saved-jobs/my');
+        if (res.success && res.data && res.data.length > 0) {
+          container.innerHTML = res.data.map(renderJobCard).join('');
+        } else {
+          container.innerHTML = `
+            <div style="grid-column:1 / -1; text-align:center; padding:50px; background:white; border-radius:var(--radius-md); border:1px dashed var(--color-border);">
+              <p style="color:var(--color-text-secondary); margin-bottom:12px;">You haven't bookmarked any jobs yet.</p>
+              <a href="jobs.html" class="btn btn-primary btn-sm">Explore Open Agricultural Jobs</a>
+            </div>
+          `;
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">Failed to load saved jobs: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

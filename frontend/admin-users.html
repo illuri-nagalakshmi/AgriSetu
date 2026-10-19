@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management — AgriSetu Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="dashboard-wrapper">
+    <aside class="dashboard-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="admin-dashboard.html" class="sidebar-link">📊 System Metrics</a></li>
+        <li><a href="admin-users.html" class="sidebar-link active">👥 User Management</a></li>
+        <li><a href="admin-jobs.html" class="sidebar-link">📋 Job Moderation</a></li>
+        <li><a href="admin-reports.html" class="sidebar-link">⚠️ Reports & Disputes</a></li>
+        <li><a href="farmer-dashboard.html" class="sidebar-link">🚜 Farmer View</a></li>
+        <li><a href="labourer-dashboard.html" class="sidebar-link">🌾 Labourer View</a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title">User Accounts Administration</h1>
+          <p class="dashboard-subtitle">Inspect registered farmers and agricultural labourers</p>
+        </div>
+        <div>
+          <input type="text" id="user-search" class="form-control" placeholder="Search by name or email..." oninput="filterUsersTable()" style="width:260px;">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Location</th>
+                <th>Rating</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody">
+              <tr>
+                <td colspan="8" style="text-align:center; padding:32px;">Loading users...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    let allUsers = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['ADMIN'])) return;
+      loadUsers();
+    });
+
+    async function loadUsers() {
+      const tbody = document.getElementById('admin-users-tbody');
+      try {
+        const res = await window.api.get('/api/admin/users');
+        if (res.success && res.data) {
+          allUsers = res.data;
+          renderUsersTable(allUsers);
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">Failed to load users: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('admin-users-tbody');
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">No users found matching search.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => {
+        const roleBadge = u.role === 'FARMER' ? 'badge-info' : u.role === 'ADMIN' ? 'badge-danger' : 'badge-success';
+        return `
+          <tr>
+            <td>#${u.id}</td>
+            <td><strong>${escapeHtml(u.fullName)}</strong></td>
+            <td><small>${escapeHtml(u.email)}</small></td>
+            <td><span class="badge ${roleBadge}">${u.role}</span></td>
+            <td>${escapeHtml(u.village)}, ${escapeHtml(u.district)}</td>
+            <td>⭐ ${u.averageRating ? u.averageRating.toFixed(1) : '5.0'} (${u.totalReviews || 0})</td>
+            <td>
+              <span class="badge ${u.active ? 'badge-success' : 'badge-danger'}">
+                ${u.active ? 'ACTIVE' : 'SUSPENDED'}
+              </span>
+            </td>
+            <td>
+              ${u.role !== 'ADMIN' ? `
+                <button onclick="toggleUserStatus(${u.id}, ${!u.active})" class="btn btn-sm ${u.active ? 'btn-secondary' : 'btn-primary'}" style="${u.active ? 'color:var(--color-danger);' : ''}">
+                  ${u.active ? 'Suspend' : 'Reactivate'}
+                </button>
+              ` : '<small style="color:var(--color-text-secondary);">Super Admin</small>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterUsersTable() {
+      const query = document.getElementById('user-search').value.toLowerCase().trim();
+      if (!query) {
+        renderUsersTable(allUsers);
+        return;
+      }
+      const filtered = allUsers.filter(u => 
+        u.fullName.toLowerCase().includes(query) ||
+        u.email.toLowerCase().includes(query) ||
+        u.district.toLowerCase().includes(query)
+      );
+      renderUsersTable(filtered);
+    }
+
+    async function toggleUserStatus(userId, activate) {
+      const reason = prompt(`Enter reason for ${activate ? 'reactivating' : 'suspending'} this user account:`, 'Administrative action');
+      if (reason === null) return;
+
+      try {
+        await window.api.put(`/api/admin/users/${userId}/status?activate=${activate}&reason=${encodeURIComponent(reason.trim())}`, {});
+        window.toast.success(`User account ${activate ? 'reactivated' : 'suspended'} successfully`);
+        loadUsers();
+      } catch (err) {
+        window.toast.error(err.message || 'Failed to update user status');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

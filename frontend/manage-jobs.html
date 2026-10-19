@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Jobs — AgriSetu</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="images/logo.svg">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <div class="dashboard-wrapper">
+    <aside class="dashboard-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="farmer-dashboard.html" class="sidebar-link">📊 Dashboard</a></li>
+        <li><a href="create-job.html" class="sidebar-link">➕ Post New Job</a></li>
+        <li><a href="manage-jobs.html" class="sidebar-link active">📋 Manage Jobs</a></li>
+        <li><a href="applications.html" class="sidebar-link">👥 Applications</a></li>
+        <li><a href="assignments.html" class="sidebar-link">🚜 Work Assignments</a></li>
+        <li><a href="notifications.html" class="sidebar-link">🔔 Notifications</a></li>
+        <li><a href="profile.html" class="sidebar-link">👤 My Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title">Manage Your Agricultural Jobs</h1>
+          <p class="dashboard-subtitle">Monitor applications, modify job status, and track confirmed workers</p>
+        </div>
+        <div>
+          <a href="create-job.html" class="btn btn-primary">➕ Post Another Job</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Schedule</th>
+                <th>Wage</th>
+                <th>Staffing Status</th>
+                <th>Job Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="manage-jobs-tbody">
+              <tr>
+                <td colspan="8" style="text-align:center; padding:32px;">Loading jobs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/nav.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.auth.requireAuth(['FARMER', 'ADMIN'])) return;
+      loadFarmerJobs();
+    });
+
+    async function loadFarmerJobs() {
+      const tbody = document.getElementById('manage-jobs-tbody');
+      try {
+        const res = await window.api.get('/api/jobs/farmer/my-jobs');
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.map(job => {
+            const isFull = job.remainingVacancies <= 0;
+            return `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(job.title)}</strong>
+                </td>
+                <td><span class="badge badge-info">${escapeHtml(job.category)}</span></td>
+                <td>${escapeHtml(job.village)}, ${escapeHtml(job.district)}</td>
+                <td><small>${job.startDate} to ${job.endDate}</small></td>
+                <td><strong>₹${job.wageAmount}</strong> <small>/ ${job.wageBasis.toLowerCase()}</small></td>
+                <td>
+                  <div><strong>${job.confirmedWorkers}</strong> / ${job.requiredWorkers} filled</div>
+                  <span class="vacancy-pill ${isFull ? 'vacancy-full' : 'vacancy-available'}" style="margin-top:4px;">
+                    ${isFull ? 'FULL' : `${job.remainingVacancies} open`}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge ${job.status === 'PUBLISHED' ? 'badge-success' : job.status === 'PAUSED' ? 'badge-warning' : 'badge-neutral'}">
+                    ${job.status}
+                  </span>
+                </td>
+                <td>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <a href="applications.html?jobId=${job.id}" class="btn btn-primary btn-sm">
+                      Applicants
+                    </a>
+                    <a href="job-details.html?id=${job.id}" class="btn btn-outline btn-sm">
+                      View
+                    </a>
+                    ${job.status === 'PUBLISHED' ? `
+                      <button onclick="changeStatus(${job.id}, 'PAUSED')" class="btn btn-secondary btn-sm" title="Pause applications">Pause</button>
+                      <button onclick="changeStatus(${job.id}, 'CLOSED')" class="btn btn-secondary btn-sm" title="Close job">Close</button>
+                    ` : job.status === 'PAUSED' ? `
+                      <button onclick="changeStatus(${job.id}, 'PUBLISHED')" class="btn btn-secondary btn-sm" title="Resume applications">Publish</button>
+                    ` : ''}
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align:center; padding:36px;">
+                <p style="color:var(--color-text-secondary); margin-bottom:12px;">You haven't posted any jobs yet.</p>
+                <a href="create-job.html" class="btn btn-primary btn-sm">Post New Job</a>
+              </td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">Failed to load jobs: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    async function changeStatus(jobId, newStatus) {
+      if (!confirm(`Are you sure you want to change this job status to ${newStatus}?`)) return;
+      try {
+        await window.api.put(`/api/jobs/${jobId}/status?status=${newStatus}`, {});
+        window.toast.success(`Job status changed to ${newStatus}`);
+        loadFarmerJobs();
+      } catch (err) {
+        window.toast.error(err.message || 'Failed to update job status');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
