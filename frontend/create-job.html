@@ -163,8 +163,9 @@
   <script src="js/nav.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!window.auth.requireAuth(['FARMER', 'ADMIN'])) return;
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.auth.checkSession(['FARMER', 'ADMIN']);
+      if (!user) return;
 
       // Default dates
       const today = new Date();
@@ -180,7 +181,7 @@
       document.getElementById('applicationDeadline').value = inTwoDays.toISOString().split('T')[0];
 
       // Auto-fill user village/district if profile exists
-      const user = window.auth.getUser();
+      const currentUser = window.auth.getUser();
       if (user) {
         document.getElementById('village').value = user.village || '';
         document.getElementById('district').value = user.district || '';

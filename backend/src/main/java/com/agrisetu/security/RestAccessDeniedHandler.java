@@ -20,6 +20,17 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
+        String uri = request.getRequestURI();
+        String acceptHeader = request.getHeader("Accept");
+
+        // If a browser is directly loading an HTML page, redirect to login or home
+        if ((uri != null && uri.endsWith(".html")) ||
+            (acceptHeader != null && acceptHeader.contains("text/html") && (uri == null || !uri.startsWith("/api/")))) {
+            response.sendRedirect("/login.html");
+            return;
+        }
+
+        // For API calls, return JSON 403
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 

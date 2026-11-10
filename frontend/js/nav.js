@@ -88,6 +88,14 @@ function renderNavbar() {
   if (sel && window.i18n) {
     sel.addEventListener('change', (e) => window.i18n.setLanguage(e.target.value));
   }
+
+  // Ensure newly inserted navigation elements are translated in current language
+  if (window.i18n && typeof window.i18n.setLanguage === 'function') {
+    navContainer.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      el.textContent = window.i18n.t(key, el.textContent);
+    });
+  }
 }
 
 function toggleMobileMenu() {

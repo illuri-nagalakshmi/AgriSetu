@@ -135,12 +135,14 @@ public class JobService {
         return mapToJobDetailDto(job);
     }
 
+    @Transactional(readOnly = true)
     public JobDetailDto getJobDetails(Long jobId) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("Job not found with id: " + jobId));
         return mapToJobDetailDto(job);
     }
 
+    @Transactional(readOnly = true)
     public Page<JobSummaryDto> searchJobs(String category, String district, String state,
                                           BigDecimal minWage, BigDecimal maxWage,
                                           Boolean mealsProvided, Boolean accommodationProvided,
@@ -176,6 +178,7 @@ public class JobService {
         });
     }
 
+    @Transactional(readOnly = true)
     public List<JobSummaryDto> getFeaturedJobs() {
         Pageable pageable = PageRequest.of(0, 6, Sort.by(Sort.Direction.DESC, "createdAt"));
         return jobRepository.findByStatus(JobStatus.PUBLISHED, pageable)
@@ -183,6 +186,7 @@ public class JobService {
                 .getContent();
     }
 
+    @Transactional(readOnly = true)
     public List<JobSummaryDto> getMyJobs() {
         User farmer = securityUtils.getCurrentUser();
         return jobRepository.findByFarmerIdOrderByCreatedAtDesc(farmer.getId()).stream()

@@ -9,54 +9,55 @@
 </head>
 <body>
 
+  <!-- Dynamic Navigation Header -->
   <div id="navbar-container"></div>
 
   <div class="container" style="padding-top: 36px; padding-bottom: 60px;">
     
     <!-- Title & Header -->
     <div style="margin-bottom: 28px;">
-      <h1 style="font-size: 2.2rem; color: var(--color-forest);" data-i18n="nav_find_work">Find Agricultural Work</h1>
-      <p style="color: var(--color-text-secondary);">Browse live agricultural vacancies posted directly by verified farmers.</p>
+      <h1 style="font-size: 2.2rem; color: var(--primary-green); font-weight: 800;" data-i18n="jobs_page_title">Find Agricultural Work</h1>
+      <p style="color: var(--text-secondary); font-size: 1.05rem; margin-top: 4px;" data-i18n="jobs_page_subtitle">Browse live agricultural vacancies posted directly by verified farmers across districts.</p>
     </div>
 
     <!-- Filter Bar Card -->
-    <div class="card" style="margin-bottom: 32px; background: #FFFFFF; border-left: 4px solid var(--color-primary);">
+    <div class="card" style="margin-bottom: 32px; background: #FFFFFF; border-left: 4px solid var(--secondary-green);">
       <form id="filter-form" onsubmit="applyFilters(event)">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
           
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Category</label>
+            <label class="form-label" data-i18n="filter_category">Category</label>
             <select id="filter-category" class="form-control">
-              <option value="">All Categories</option>
-              <option value="Harvesting">Harvesting</option>
-              <option value="Sowing">Sowing</option>
-              <option value="Ploughing">Ploughing</option>
-              <option value="Weeding">Weeding</option>
-              <option value="Irrigation">Irrigation</option>
-              <option value="Planting">Planting</option>
-              <option value="Fertilizer Application">Fertilizer Application</option>
-              <option value="Fruit Picking">Fruit Picking</option>
-              <option value="General Agricultural Labour">General Agricultural Labour</option>
+              <option value="" data-i18n="cat_all">All Categories</option>
+              <option value="Harvesting" data-i18n="cat_harvesting">Harvesting</option>
+              <option value="Sowing" data-i18n="cat_sowing">Sowing</option>
+              <option value="Ploughing" data-i18n="cat_ploughing">Ploughing</option>
+              <option value="Weeding" data-i18n="cat_weeding">Weeding</option>
+              <option value="Irrigation" data-i18n="cat_irrigation">Irrigation</option>
+              <option value="Planting" data-i18n="cat_planting">Planting</option>
+              <option value="Fertilizer Application" data-i18n="cat_fertilizer_application">Fertilizer Application</option>
+              <option value="Fruit Picking" data-i18n="cat_fruit_picking">Fruit Picking</option>
+              <option value="General Agricultural Labour" data-i18n="cat_general_agricultural_labour">General Agricultural Labour</option>
             </select>
           </div>
 
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">District / Location</label>
-            <input type="text" id="filter-district" class="form-control" placeholder="e.g. Guntur">
+            <label class="form-label" data-i18n="filter_location">District / Location</label>
+            <input type="text" id="filter-district" class="form-control" data-i18n-placeholder="filter_location_placeholder" placeholder="e.g. Guntur">
           </div>
 
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Min Daily Wage (₹)</label>
-            <input type="number" id="filter-min-wage" class="form-control" placeholder="Min ₹">
+            <label class="form-label" data-i18n="filter_min_wage">Min Daily Wage (₹)</label>
+            <input type="number" id="filter-min-wage" class="form-control" data-i18n-placeholder="filter_min_wage_placeholder" placeholder="Min ₹">
           </div>
 
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Sort By</label>
+            <label class="form-label" data-i18n="filter_sort">Sort By</label>
             <select id="filter-sort" class="form-control">
-              <option value="newest">Newest First</option>
-              <option value="wage_desc">Wage: High to Low</option>
-              <option value="wage_asc">Wage: Low to High</option>
-              <option value="date">Earliest Start Date</option>
+              <option value="newest" data-i18n="sort_newest">Newest First</option>
+              <option value="wage_desc" data-i18n="sort_wage_desc">Wage: High to Low</option>
+              <option value="wage_asc" data-i18n="sort_wage_asc">Wage: Low to High</option>
+              <option value="date" data-i18n="sort_date">Earliest Start Date</option>
             </select>
           </div>
 
@@ -65,16 +66,16 @@
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 18px; flex-wrap:wrap; gap:12px;">
           <div style="display:flex; gap:16px;">
             <label style="display:flex; align-items:center; gap:6px; font-size:0.9rem; cursor:pointer;">
-              <input type="checkbox" id="filter-meals"> Meals Provided
+              <input type="checkbox" id="filter-meals"> <span data-i18n="filter_meals">Meals Provided</span>
             </label>
             <label style="display:flex; align-items:center; gap:6px; font-size:0.9rem; cursor:pointer;">
-              <input type="checkbox" id="filter-accommodation"> Accommodation
+              <input type="checkbox" id="filter-accommodation"> <span data-i18n="filter_accommodation">Accommodation</span>
             </label>
           </div>
 
           <div style="display:flex; gap:10px;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="resetFilters()">Reset</button>
-            <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="resetFilters()" data-i18n="btn_reset">Reset</button>
+            <button type="submit" class="btn btn-primary btn-sm" data-i18n="btn_apply_filters">Apply Filters</button>
           </div>
         </div>
       </form>
@@ -82,7 +83,7 @@
 
     <!-- Jobs Grid -->
     <div id="jobs-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
-      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--color-text-secondary);">
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary);" data-i18n="jobs_loading">
         Loading agricultural jobs...
       </div>
     </div>
@@ -91,6 +92,54 @@
     <div id="pagination-controls" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 40px;"></div>
 
   </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+            <img src="images/logo.svg" alt="AgriSetu" height="40" style="filter: brightness(0) invert(1);">
+          </div>
+          <p style="font-size: 0.92rem; line-height: 1.65; color: #BBF7D0;" data-i18n="footer_desc">
+            AgriSetu is a dedicated agricultural employment platform connecting farmers with skilled workers across India through transparent wages and mutual respect.
+          </p>
+        </div>
+
+        <div>
+          <h4 data-i18n="footer_quick_links">Quick Links</h4>
+          <ul>
+            <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+            <li><a href="jobs.html" data-i18n="nav_find_work">Find Work</a></li>
+            <li><a href="login.html?role=farmer" data-i18n="nav_hire_workers">Hire Workers</a></li>
+            <li><a href="about.html" data-i18n="nav_about">About AgriSetu</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 data-i18n="footer_support">Support & Safety</h4>
+          <ul>
+            <li><a href="privacy.html" data-i18n="nav_privacy">Privacy Policy</a></li>
+            <li><a href="about.html#safety" data-i18n="btn_safety_standards">Worker Safety Guidelines</a></li>
+            <li><a href="login.html" data-i18n="nav_login">Account Login</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 data-i18n="footer_languages">Languages</h4>
+          <ul>
+            <li><a href="javascript:void(0)" onclick="window.i18n.setLanguage('en')">English</a></li>
+            <li><a href="javascript:void(0)" onclick="window.i18n.setLanguage('te')">తెలుగు (Telugu)</a></li>
+            <li><a href="javascript:void(0)" onclick="window.i18n.setLanguage('hi')">हिन्दी (Hindi)</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 AgriSetu. <span data-i18n="footer_notice">Empowering Rural Agriculture • Transparent & Fair Platform</span>. <span data-i18n="footer_rights">All rights reserved.</span></p>
+      </div>
+    </div>
+  </footer>
 
   <script src="js/i18n.js"></script>
   <script src="js/api.js"></script>
@@ -110,6 +159,7 @@
       if (params.get('district')) document.getElementById('filter-district').value = params.get('district');
       if (params.get('minWage')) document.getElementById('filter-min-wage').value = params.get('minWage');
       if (params.get('mealsProvided') === 'true') document.getElementById('filter-meals').checked = true;
+      if (params.get('sortBy')) document.getElementById('filter-sort').value = params.get('sortBy');
 
       loadJobs(0);
     });
@@ -117,7 +167,8 @@
     async function loadJobs(page = 0) {
       currentPage = page;
       const container = document.getElementById('jobs-container');
-      container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;">Loading matching jobs...</div>';
+      const t = window.i18n ? window.i18n.t : (k, f) => f || k;
+      container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-secondary);">${t('jobs_matching_loading', 'Loading matching jobs...')}</div>`;
 
       const cat = document.getElementById('filter-category').value;
       const district = document.getElementById('filter-district').value.trim();
@@ -144,18 +195,20 @@
           renderPagination(res.data.totalPages, res.data.number);
         } else {
           container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: white; border-radius: var(--radius-md); border: 1px dashed var(--color-border);">
-              <h3 style="color: var(--color-forest); margin-bottom: 8px;">No matching agricultural jobs found</h3>
-              <p style="color: var(--color-text-secondary); margin-bottom: 16px;">Try adjusting your location, wage filter, or category.</p>
-              <button onclick="resetFilters()" class="btn btn-secondary btn-sm">Clear All Filters</button>
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: white; border-radius: var(--border-radius); border: 1px dashed var(--border-color);">
+              <h3 style="color: var(--primary-green); margin-bottom: 8px;">${t('jobs_empty_title', 'No matching agricultural jobs found')}</h3>
+              <p style="color: var(--text-secondary); margin-bottom: 16px;">${t('jobs_empty_desc', 'Try adjusting your location, wage filter, or work category.')}</p>
+              <button onclick="resetFilters()" class="btn btn-secondary btn-sm">${t('btn_clear_filters', 'Clear All Filters')}</button>
             </div>
           `;
           document.getElementById('pagination-controls').innerHTML = '';
         }
       } catch (err) {
         container.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 30px; background: #FEE2E2; border-radius: var(--radius-md); color: #991B1B;">
-            Failed to load jobs. Error: ${escapeHtml(err.message)}
+          <div style="grid-column: 1 / -1; text-align: center; padding: 32px 20px; background: #FEE2E2; border-radius: var(--border-radius); color: #991B1B; border: 1px solid #FCA5A5;">
+            <p style="font-weight:700; margin-bottom:6px; font-size:1.05rem;">${t('jobs_error_title', 'Failed to load jobs')}</p>
+            <p style="font-size:0.9rem; margin-bottom:14px;">${escapeHtml(err.message || t('jobs_error_desc', 'Unable to retrieve jobs right now.'))}</p>
+            <button onclick="loadJobs(${currentPage})" class="btn btn-secondary btn-sm">${t('btn_retry', 'Retry')}</button>
           </div>
         `;
       }
@@ -188,7 +241,7 @@
         html += `<button class="btn btn-secondary btn-sm" onclick="loadJobs(${activePage - 1})">← Previous</button>`;
       }
 
-      html += `<span style="font-weight:600; color:var(--color-text-secondary); font-size:0.9rem;">Page ${activePage + 1} of ${totalPages}</span>`;
+      html += `<span style="font-weight:700; color:var(--text-secondary); font-size:0.9rem;">Page ${activePage + 1} of ${totalPages}</span>`;
 
       if (activePage < totalPages - 1) {
         html += `<button class="btn btn-secondary btn-sm" onclick="loadJobs(${activePage + 1})">Next →</button>`;

@@ -44,7 +44,19 @@ public class WorkerAllocationServiceTest {
     private AssignmentRepository assignmentRepository;
 
     @Autowired
+    private com.agrisetu.repository.NotificationRepository notificationRepository;
+
+    @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private com.agrisetu.repository.FarmerProfileRepository farmerProfileRepository;
+
+    @Autowired
+    private com.agrisetu.repository.LabourerProfileRepository labourerProfileRepository;
+
+    @Autowired
+    private JobService jobService;
 
     private User farmer;
     private List<User> labourers;
@@ -52,9 +64,12 @@ public class WorkerAllocationServiceTest {
 
     @BeforeEach
     void setUp() {
+        notificationRepository.deleteAll();
         assignmentRepository.deleteAll();
         applicationRepository.deleteAll();
         jobRepository.deleteAll();
+        farmerProfileRepository.deleteAll();
+        labourerProfileRepository.deleteAll();
         userRepository.deleteAll();
 
         // 1. Create Farmer
@@ -216,5 +231,20 @@ public class WorkerAllocationServiceTest {
         assertEquals(0, finalJob.getRemainingVacancies(), "Remaining vacancies must be 0");
         assertEquals(2, successCount.get(), "Exactly 2 remaining spots should be accepted");
         assertEquals(5, failureCount.get(), "The other 5 requests should be rejected");
+    }
+
+    @Test
+    @DisplayName("Verify searchJobs and getFeaturedJobs load successfully without LazyInitializationException")
+    void testSearchJobsAndFeaturedJobs() {
+        var page = jobService.searchJobs(null, null, null, null, null, null, null, "newest", 0, 10);
+        assertNotNull(page);
+        assertFalse(page.isEmpty());
+        assertEquals("Paddy Harvesting (10 Capacity Test)", page.getContent().get(0).getTitle());
+        assertEquals(farmer.getFullName(), page.getContent().get(0).getFarmerName());
+
+        var featured = jobService.getFeaturedJobs();
+        assertNotNull(featured);
+        assertFalse(featured.isEmpty());
+        assertEquals(farmer.getFullName(), featured.get(0).getFarmerName());
     }
 }

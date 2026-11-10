@@ -99,8 +99,9 @@
     let myJobs = [];
     let selectedJob = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!window.auth.requireAuth(['FARMER', 'ADMIN'])) return;
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.auth.checkSession(['FARMER', 'ADMIN']);
+      if (!user) return;
       loadJobsDropdown();
     });
 

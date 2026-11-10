@@ -110,11 +110,14 @@
   <script src="js/nav.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!window.auth.requireAuth(['FARMER', 'ADMIN'])) return;
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.auth.checkSession(['FARMER', 'ADMIN']);
+      if (!user) return;
 
-      const user = window.auth.getUser();
-      document.getElementById('user-display-name').textContent = user.fullName;
+      const nameEl = document.getElementById('user-display-name');
+      if (nameEl && user.fullName) {
+        nameEl.textContent = user.fullName;
+      }
 
       loadStats();
       loadJobs();

@@ -264,6 +264,7 @@ public class WorkerAllocationService {
         return mapToAssignmentDto(assignment);
     }
 
+    @Transactional(readOnly = true)
     public List<ApplicationDto> getApplicationsForJob(Long jobId) {
         User currentUser = securityUtils.getCurrentUser();
         Job job = jobRepository.findById(jobId)
@@ -278,6 +279,7 @@ public class WorkerAllocationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ApplicationDto> getMyApplications() {
         User labourer = securityUtils.getCurrentUser();
         return applicationRepository.findByLabourerIdOrderByAppliedAtDesc(labourer.getId()).stream()

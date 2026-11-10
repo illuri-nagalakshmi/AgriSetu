@@ -23,7 +23,7 @@ public class SecurityUtils {
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             return Optional.empty();
         }
-        return userRepository.findByEmail(authentication.getName());
+        return userRepository.findByEmailIgnoreCase(authentication.getName().trim());
     }
 
     public User getCurrentUser() {

@@ -30,3 +30,18 @@ desktop.ini
 # Package locks and temporary files
 *.tmp
 *.bak
+
+
+
+# Node dependencies
+node_modules/
+
+# Database local files
+*.db
+*.sqlite
+
+# Private configuration
+application-local.properties
+
+
+*.dll

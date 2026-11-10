@@ -4,7 +4,9 @@
  */
 
 const API_CONFIG = {
-  baseUrl: (window.location.port === '8080') ? '' : 'http://localhost:8080'
+  baseUrl: (window.location.port === '8080')
+    ? ''
+    : `${window.location.protocol}//${window.location.hostname || 'localhost'}:8080`
 };
 
 function getCsrfToken() {
@@ -28,7 +30,16 @@ async function request(endpoint, options = {}) {
   // Attach CSRF token on mutating requests
   const method = (options.method || 'GET').toUpperCase();
   if (method !== 'GET' && method !== 'HEAD') {
-    const csrfToken = getCsrfToken();
+    let csrfToken = getCsrfToken();
+    if (!csrfToken) {
+      // Warm up CSRF token cookie by querying auth session endpoint if missing
+      try {
+        await fetch(`${API_CONFIG.baseUrl}/api/auth/current`, { credentials: 'include' });
+        csrfToken = getCsrfToken();
+      } catch (e) {
+        // proceed
+      }
+    }
     if (csrfToken) {
       headers['X-XSRF-TOKEN'] = csrfToken;
     }
@@ -83,5 +94,6 @@ window.api = {
   post: (endpoint, body) => request(endpoint, { method: 'POST', body: JSON.stringify(body) }),
   put: (endpoint, body) => request(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (endpoint) => request(endpoint, { method: 'DELETE' }),
+  getCsrfToken,
   request
 };

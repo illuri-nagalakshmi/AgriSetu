@@ -48,6 +48,38 @@ const auth = {
     }
   },
 
+  checkSession: async (allowedRoles = []) => {
+    // 1. Fast preliminary check from local storage
+    const localUser = auth.getUser();
+    if (!localUser) {
+      window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return null;
+    }
+
+    // 2. Synchronize and confirm with active backend session
+    const verifiedUser = await auth.syncSession();
+    if (!verifiedUser) {
+      window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return null;
+    }
+
+    // 3. Verify role permissions
+    if (allowedRoles.length > 0 && !allowedRoles.includes(verifiedUser.role)) {
+      if (verifiedUser.role === 'FARMER') {
+        window.location.href = 'farmer-dashboard.html';
+      } else if (verifiedUser.role === 'LABOURER') {
+        window.location.href = 'labourer-dashboard.html';
+      } else if (verifiedUser.role === 'ADMIN') {
+        window.location.href = 'admin-dashboard.html';
+      } else {
+        window.location.href = 'index.html';
+      }
+      return null;
+    }
+
+    return verifiedUser;
+  },
+
   login: async (email, password) => {
     const res = await window.api.post('/api/auth/login', { email, password });
     if (res.success && res.data) {

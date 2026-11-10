@@ -5,6 +5,7 @@ import com.agrisetu.entity.JobStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -18,9 +19,15 @@ import java.util.Optional;
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long> {
 
+    @EntityGraph(attributePaths = {"farmer"})
     List<Job> findByFarmerIdOrderByCreatedAtDesc(Long farmerId);
 
+    @EntityGraph(attributePaths = {"farmer"})
     Page<Job> findByStatus(JobStatus status, Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"farmer"})
+    Optional<Job> findById(Long id);
 
     long countByFarmerId(Long farmerId);
 
@@ -35,6 +42,7 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     @Query("SELECT j FROM Job j WHERE j.id = :id")
     Optional<Job> findByIdWithPessimisticLock(@Param("id") Long id);
 
+    @EntityGraph(attributePaths = {"farmer"})
     @Query("SELECT j FROM Job j WHERE (:status IS NULL OR j.status = :status) " +
            "AND (:category IS NULL OR :category = '' OR j.category = :category) " +
            "AND (:district IS NULL OR :district = '' OR LOWER(j.district) LIKE LOWER(CONCAT('%', :district, '%'))) " +

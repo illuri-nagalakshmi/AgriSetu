@@ -6,6 +6,7 @@ import com.agrisetu.dto.LoginRequest;
 import com.agrisetu.dto.RegisterRequest;
 import com.agrisetu.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,22 +24,26 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
             @Valid @RequestBody RegisterRequest request,
-            HttpServletRequest httpRequest) {
-        AuthResponse response = authService.register(request, httpRequest);
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        AuthResponse response = authService.register(request, httpRequest, httpResponse);
         return ResponseEntity.ok(ApiResponse.success("Registration successful", response));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request,
-            HttpServletRequest httpRequest) {
-        AuthResponse response = authService.login(request, httpRequest);
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        AuthResponse response = authService.login(request, httpRequest, httpResponse);
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest httpRequest) {
-        authService.logout(httpRequest);
+    public ResponseEntity<ApiResponse<Void>> logout(
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        authService.logout(httpRequest, httpResponse);
         return ResponseEntity.ok(ApiResponse.success("Logged out successfully"));
     }
 
